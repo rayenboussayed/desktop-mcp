@@ -432,6 +432,14 @@ describe("main() in-process", () => {
     expect(await done).toBe(0);
     expect(err.join("")).toContain(`listening on http://127.0.0.1:${port}/mcp`);
   });
+
+  it("rejects oversized HTTP request bodies", async () => {
+    const http = await serveHttp({ policy: "readonly" }, "127.0.0.1", 0);
+    const port = (http.address() as AddressInfo).port;
+    const res = await fetch(`http://127.0.0.1:${port}/mcp`, { method: "POST", body: "x".repeat(1024 * 1024 + 1), headers: { "content-type": "application/json" } });
+    expect(res.status).toBe(413);
+    await new Promise<void>((resolve) => http.close(() => resolve()));
+  });
 });
 
 describe("compiled binary", () => {

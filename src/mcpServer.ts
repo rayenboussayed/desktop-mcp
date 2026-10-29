@@ -226,7 +226,12 @@ export async function serveHttp(opts: ServerOptions, host = "127.0.0.1", port = 
         if (localOnly && !["127.0.0.1", "localhost", "::1"].includes(hostName)) return void json(res, 403, "forbidden host");
         if (req.method !== "POST") return void json(res, 405, "method not allowed (stateless server: POST only)");
         const chunks: Buffer[] = [];
-        for await (const c of req) chunks.push(c as Buffer);
+        const maxBytes = 1024 * 1024;
+        for await (const c of req) {
+          const buf = c as Buffer;
+          if (chunks.reduce((n, b) => n + b.length, 0) + buf.length > maxBytes) return void json(res, 413, "request body too large");
+          chunks.push(buf);
+        }
         let body: unknown;
         try {
           body = JSON.parse(Buffer.concat(chunks).toString("utf8"));

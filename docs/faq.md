@@ -7,7 +7,7 @@ safe local operation.
 
 ## Does it install a cloud SDK?
 
-No, for the MCP server. The optional peer `@anthropic-ai/sdk` is only for the
+No, for the MCP server. The optional peer `ollama` is only for the
 standalone `osagent` command, is never installed with desktop-mcp, and is never
 loaded.
 

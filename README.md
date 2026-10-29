@@ -190,7 +190,7 @@ input (an agent that parks the pointer there locks itself out until a person mov
 ## Standalone agent
 
 `osagent "task"` is a small agent loop (plan → act → verify) that uses the same tools and permission flags. It is the
-only component that needs an LLM API: `npm install @anthropic-ai/sdk` and set `ANTHROPIC_API_KEY`.
+only component that needs an LLM API: `npm install ollama` and set `OLLAMA_HOST`.
 
 ## Testing
 

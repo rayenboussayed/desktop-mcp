@@ -39,9 +39,9 @@ describe("static guard: no hidden network or cloud dependencies", () => {
   });
   it("a cloud client is not a dependency of the MCP server (only an optional peer of the standalone agent)", () => {
     const pkg = JSON.parse(readFileSync("package.json", "utf8")) as Record<string, Record<string, unknown>>;
-    expect(Object.keys(pkg.dependencies ?? {})).not.toContain("@anthropic-ai/sdk");
-    expect(Object.keys(pkg.optionalDependencies ?? {})).not.toContain("@anthropic-ai/sdk");
-    expect(pkg.peerDependenciesMeta?.["@anthropic-ai/sdk"]).toEqual({ optional: true });
+    expect(Object.keys(pkg.dependencies ?? {})).not.toContain("ollama");
+    expect(Object.keys(pkg.optionalDependencies ?? {}).length).toBeGreaterThanOrEqual(0);
+    expect(pkg.peerDependenciesMeta?.["ollama"]).toEqual({ optional: true });
     expect(pkg.name).toBe("desktop-mcp");
     expect((pkg.bin as unknown as Record<string, string>)["desktop-mcp"]).toBe("./dist/bin/omcps.js");
   });

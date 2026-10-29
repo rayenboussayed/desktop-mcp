@@ -217,17 +217,17 @@ describe("engine path patterns", () => {
 });
 
 describe("agent: default client and permission policy", () => {
-  const msg = (content: unknown[]) => JSON.stringify({ id: "m", type: "message", role: "assistant", model: "m", stop_reason: "end_turn", usage: { input_tokens: 1, output_tokens: 1 }, content });
   const serve = async (body: () => string): Promise<{ url: string; close: () => void }> => {
     const srv = createServer((req, res) => { req.resume(); req.on("end", () => { res.setHeader("content-type", "application/json"); res.end(body()); }); });
     await new Promise<void>((resolve) => srv.listen(0, "127.0.0.1", resolve));
     return { url: `http://127.0.0.1:${(srv.address() as AddressInfo).port}`, close: () => srv.close() };
   };
 
-  it("builds its own Anthropic client (key and base URL from the environment)", async () => {
-    const s = await serve(() => msg([{ type: "text", text: "hello from the stand-in API" }]));
+  it("builds its own Ollama client (host from the environment)", async () => {
+    const body = () => JSON.stringify({ model: "m", created_at: new Date().toISOString(), message: { role: "assistant", content: "hello from the stand-in API" }, done: true, done_reason: "stop", total_duration: 0, load_duration: 0, prompt_eval_count: 1, prompt_eval_duration: 0, eval_count: 1, eval_duration: 0 });
+    const s = await serve(() => body());
     try {
-      const out = await withEnv({ ANTHROPIC_API_KEY: "k", ANTHROPIC_BASE_URL: s.url }, () => new Agent({ search: false }).run("hi"));
+      const out = await withEnv({ OLLAMA_HOST: s.url }, () => new Agent({ search: false }).run("hi"));
       expect(out).toBe("hello from the stand-in API");
     } finally {
       s.close();
@@ -244,7 +244,7 @@ describe("agent: default client and permission policy", () => {
   it("without the optional Anthropic SDK the standalone agent says how to install it (omcps never needs it)", async () => {
     __setSdkLoader(() => Promise.reject(new Error("Cannot find package")));
     try {
-      await expect(new Agent({ search: false }).run("hi")).rejects.toThrow(/needs the Anthropic SDK: npm install @anthropic-ai\/sdk \(the desktop-mcp MCP server does not\)/);
+      await expect(new Agent({ search: false }).run("hi")).rejects.toThrow(/needs the Ollama SDK: npm install ollama \(the desktop-mcp MCP server does not\)/);
     } finally {
       __setSdkLoader(undefined);
     }
@@ -367,11 +367,11 @@ describe("cli: policy flags, default streams and default agent", () => {
   });
 
   it("uses the real Agent when none is injected (events are printed)", async () => {
-    const srv = createServer((req, res) => { req.resume(); req.on("end", () => { res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ id: "m", type: "message", role: "assistant", model: "m", stop_reason: "end_turn", usage: { input_tokens: 1, output_tokens: 1 }, content: [{ type: "text", text: "real agent reply" }] })); }); });
+    const srv = createServer((req, res) => { req.resume(); req.on("end", () => { res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ model: "m", created_at: new Date().toISOString(), message: { role: "assistant", content: "real agent reply" }, done: true, done_reason: "stop", total_duration: 0, load_duration: 0, prompt_eval_count: 1, prompt_eval_duration: 0, eval_count: 1, eval_duration: 0 })); }); });
     await new Promise<void>((resolve) => srv.listen(0, "127.0.0.1", resolve));
     const out: string[] = [];
     try {
-      const code = await withEnv({ ANTHROPIC_API_KEY: "k", ANTHROPIC_BASE_URL: `http://127.0.0.1:${(srv.address() as AddressInfo).port}` }, () => cliMain(["--no-search", "hello"], { out: (s) => out.push(s) }));
+      const code = await withEnv({ OLLAMA_HOST: `http://127.0.0.1:${(srv.address() as AddressInfo).port}` }, () => cliMain(["--no-search", "hello"], { out: (s) => out.push(s) }));
       expect(code).toBe(0);
       expect(out.join("\n")).toContain("real agent reply");
     } finally {

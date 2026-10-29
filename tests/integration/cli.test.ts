@@ -43,7 +43,7 @@ describe("cli (injected I/O)", () => {
   it("defaults", async () => {
     const t = io();
     await main(["go"], t.deps);
-    expect(t.created[0]).toMatchObject({ gui: false, search: true, confirmAll: false, maxSteps: 40, model: "claude-sonnet-5-5" });
+    expect(t.created[0]).toMatchObject({ gui: false, search: true, confirmAll: false, maxSteps: 40, model: "llama3.2" });
   });
 
   it("interactive mode loops until EOF and skips blank lines", async () => {

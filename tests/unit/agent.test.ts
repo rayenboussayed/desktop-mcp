@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { Agent, DANGEROUS, SYSTEM_PROMPT, needsConfirmation, type ContentBlock, type MessagesClient } from "../../src/agent.js";
+import { Agent, DANGEROUS, SYSTEM_PROMPT, needsConfirmation, __setSdkLoader, toolsToOllama, messagesToOllama, ollamaCreate, type ContentBlock, type MessagesClient } from "../../src/agent.js";
 import { runCommandTool } from "../../src/tools/shell.js";
 import { tmpDir } from "../helpers.js";
 
@@ -49,7 +49,7 @@ describe("agent loop", () => {
   it("returns the final text when the model calls no tools", async () => {
     const client = scripted([[text("all done")]]);
     expect(await new Agent({ client, search: false }).run("hi")).toBe("all done");
-    expect(client.calls[0]?.model).toBe("claude-sonnet-5-5");
+    expect(client.calls[0]?.model).toBe("llama3.2");
     expect(String(client.calls[0]?.system)).toContain("OS:");
     expect(String(client.calls[0]?.system)).not.toContain("{platform}");
     const names = (client.calls[0]?.tools as { name: string }[]).map((t) => t.name);
@@ -106,6 +106,27 @@ describe("agent loop", () => {
     const turn = (): Turn => [use("x", "think", { thought: "again" })];
     const client = scripted([turn(), turn(), turn()]);
     expect(await new Agent({ client, search: false, maxSteps: 3 }).run("loop")).toBe("[stopped after 3 steps without finishing]");
+  });
+
+  it("uses the default Ollama client adapter end to end", async () => {
+    let n = 0;
+    const fake = {
+      Ollama: class {
+        async chat() {
+          n += 1;
+          if (n === 1) return { message: { content: "planning", tool_calls: [{ function: { name: "think", arguments: { thought: "plan" } } }] } };
+          return { message: { content: "done" } };
+        }
+      },
+    };
+    __setSdkLoader(() => Promise.resolve(fake as never));
+    try {
+      const out = await new Agent({ search: false }).run("hi");
+      expect(out).toBe("done");
+      expect(n).toBe(2);
+    } finally {
+      __setSdkLoader(undefined);
+    }
   });
 
   it("includes web tools by default and drops them with search:false", async () => {
@@ -166,5 +187,61 @@ describe("approval gating", () => {
 describe("system prompt", () => {
   it("states the workflow", () => {
     for (const w of ["PLAN", "ACT", "VERIFY", "ADAPT", "SEARCH", "FINISH", "{platform}"]) expect(SYSTEM_PROMPT).toContain(w);
+  });
+});
+
+
+describe("Ollama adapter helpers", () => {
+  it("converts tools and undefined input", () => {
+    expect(toolsToOllama(undefined)).toBeUndefined();
+    expect(toolsToOllama("nope")).toBeUndefined();
+    expect(toolsToOllama([{ name: "t", input_schema: { type: "object" } }])).toEqual([{ type: "function", function: { name: "t", description: undefined, parameters: { type: "object" } } }]);
+    expect(toolsToOllama([{ name: "u" }])).toEqual([{ type: "function", function: { name: "u", description: undefined, parameters: { type: "object", properties: {} } } }]);
+    expect(toolsToOllama([{ description: "d" }])).toEqual([{ type: "function", function: { name: "", description: "d", parameters: { type: "object", properties: {} } } }]);
+  });
+  it("maps tool names and handles non-array messages", () => {
+    expect(messagesToOllama({})).toEqual([]);
+    expect(messagesToOllama({ system: "  ", messages: "x" })).toEqual([]);
+    expect(messagesToOllama({ system: "sys", messages: [{ role: "user", content: "hi" }] })).toEqual([{ role: "system", content: "sys" }, { role: "user", content: "hi" }]);
+    const mapped = messagesToOllama({ messages: [{ content: [{ type: "tool_use", id: "1", name: "tool" }] }] });
+    const withResult = messagesToOllama({ messages: [{ role: "user", content: [{ type: "tool_result", tool_use_id: "1", content: { a: 1 } }, { type: "tool_result", tool_use_id: "2", content: "ok" }] }] });
+    expect(withResult[0]?.role).toBe("tool");
+    expect(withResult[0]?.tool_name).toBe("1");
+    expect(withResult[1]?.tool_name).toBe("2");
+    const noToolId = messagesToOllama({ messages: [{ role: "user", content: [{ type: "tool_result", content: 42 }] }] });
+    expect(noToolId[0]?.tool_name).toBe("");
+    const nullContent = messagesToOllama({ messages: [{ role: "user", content: [{ type: "tool_result", tool_use_id: "1", content: null }] }] });
+    expect(nullContent[0]?.content).toBe("\"\"");
+    const mappedCall = messagesToOllama({ messages: [{ role: "assistant", content: [{ type: "tool_use", id: "1", name: "tool" }] }, { role: "user", content: [{ type: "tool_result", tool_use_id: "1", content: "ok" }] }] });
+    expect(mappedCall[1]?.tool_name).toBe("tool");
+    const unknown = messagesToOllama({ messages: [{ role: "user", content: 5 }] });
+    expect(unknown[0]).toEqual({ role: "user", content: "" });
+    expect(mapped).toHaveLength(0);
+    const noId = messagesToOllama({ messages: [{ role: "assistant", content: [{ type: "tool_use", name: "noid" }] }] });
+    expect(noId[0]?.tool_calls?.[0]?.function.name).toBe("noid");
+    const noName = messagesToOllama({ messages: [{ role: "assistant", content: [{ type: "tool_use", id: "x", input: undefined }] }] });
+    expect(noName[0]?.tool_calls?.[0]?.function.name).toBe("");
+    const noInput = messagesToOllama({ messages: [{ role: "assistant", content: [{ type: "tool_use", name: "y" }] }] });
+    expect(noInput[0]?.tool_calls?.[0]?.function.arguments).toEqual({});
+    const withText = messagesToOllama({ messages: [{ role: "user", content: [{ type: "text", text: "hello" }] }] });
+    expect(withText[0]?.content).toBe("hello");
+    const mixed = messagesToOllama({ messages: [{ role: "user", content: [{ type: "text", text: "hi" }, { type: "text" }] }] });
+    expect(mixed[0]?.content).toBe("hi");
+    const assistantEmpty = messagesToOllama({ messages: [{ role: "assistant", content: [{ type: "text" }, { type: "other" }] }] });
+    expect(assistantEmpty[0]?.content).toBe("");
+    expect(assistantEmpty[0]?.tool_calls).toBeUndefined();
+  });
+  it("converts assistant tool use and empty ollama responses", async () => {
+    const out = messagesToOllama({ messages: [{ role: "assistant", content: [{ type: "text", text: "hi" }, { type: "tool_use", name: "run", input: { x: 1 } }] }] });
+    expect(out[0]?.tool_calls).toHaveLength(1);
+    const empty = await ollamaCreate({ chat: async () => ({ message: { content: "", tool_calls: [] } }) }, { model: "m", messages: [], tools: undefined });
+    expect(empty.content).toEqual([{ type: "text", text: "" }]);
+    const withTools = await ollamaCreate({ chat: async () => ({ message: { content: "ok", tool_calls: [{ function: { name: "t", arguments: null } }] } }) }, { model: "m", messages: [], tools: null });
+    const noModel = await ollamaCreate({ chat: async () => ({}) }, { messages: [], tools: undefined });
+    expect(noModel.content).toEqual([{ type: "text", text: "" }]);
+    expect(withTools.content).toEqual([{ type: "text", text: "ok" }, { type: "tool_use", id: "call_0", name: "t", input: {} }]);
+  });
+  it("handles a non-string system and non-array tool inputs", () => {
+    expect(messagesToOllama({ system: 5, messages: [{ role: "assistant", content: "just text" }] })).toEqual([{ role: "assistant", content: "just text" }]);
   });
 });

@@ -143,6 +143,10 @@ describe.skipIf(!isPosix)("open_path", () => {
   it("reports a missing opener", async () => {
     expect(await withEnv({ PATH: tmpDir() }, () => sys.openPath("x"))).toMatch(/^\[error\]/);
   });
+  it("rejects targets with control characters", async () => {
+    expect(await sys.openPath("bad\r\ntarget")).toMatch(/^\[error\].*line breaks/);
+  });
+
   it("uses cmd start on windows", async () => {
     const bin = tmpDir();
     const log = path.join(tmpDir(), "w");
@@ -312,5 +316,14 @@ describe("file management", () => {
     expect(await sys.editFile(f, "absent", "x")).toBe("[error] text to replace was not found");
     expect(await sys.editFile(f, "", "x")).toBe("[error] text to replace must not be empty");
     expect(await sys.editFile(path.join(d, "none"), "a", "b")).toContain("[error] not a file");
+  });
+});
+
+
+describe("process safety", () => {
+  it("rejects invalid pids before querying or signalling", async () => {
+    expect(await sys.killProcess(0)).toBe("[error] invalid pid 0");
+    expect(await sys.killProcess(-5)).toBe("[error] invalid pid -5");
+    expect(await sys.killProcess(1.25)).toBe("[error] invalid pid 1.25");
   });
 });

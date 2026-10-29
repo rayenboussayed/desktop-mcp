@@ -32,6 +32,10 @@ describe.skipIf(!isPosix)("Windows process table (PowerShell JSON, fake powershe
     await expect(withPlatform("win32", () => withEnv({ PATH: tmpDir() }, () => sys.listProcesses()))).rejects.toThrow();
   });
 
+  it("malformed PowerShell JSON fails loudly rather than being silently accepted", async () => {
+    await expect(withPs("not json")(() => sys.listProcesses())).rejects.toThrow();
+  });
+
   it("kill_process reports a missing pid via the table", async () => {
     const ps = withPs("[]");
     expect(await ps(() => sys.killProcess(424242))).toBe("[error] no such process 424242");

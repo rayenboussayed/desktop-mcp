@@ -85,7 +85,12 @@ async function processTable(): Promise<ProcRow[]> {
       { timeoutMs: 20_000 },
     );
     if (r.error) throw r.error;
-    const parsed = JSON.parse(r.stdout.trim() || "[]") as unknown;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(r.stdout.trim() || "[]");
+    } catch (e) {
+      throw e as Error;
+    }
     const list = (Array.isArray(parsed) ? parsed : [parsed]) as { Id: number; ProcessName: string; WorkingSet64: number }[];
     return list.map((p) => ({ pid: p.Id, name: p.ProcessName, memMiB: Math.floor(p.WorkingSet64 / 2 ** 20), user: "", stat: "" }));
   }
@@ -138,6 +143,7 @@ async function processInfo(pid: number): Promise<ProcRow | undefined> {
  * @returns A human-readable result.
  */
 export async function killProcess(pid: number, force = false): Promise<string> {
+  if (!Number.isInteger(pid) || pid < 1) return `[error] invalid pid ${pid}`;
   if (pid === process.pid) return "[refused] will not kill the MCP server itself";
   const info = await processInfo(pid);
   if (!info) return `[error] no such process ${pid}`;
@@ -213,6 +219,7 @@ export async function clipboardSet(text: string): Promise<string> {
  * @returns A human-readable result.
  */
 export function openPath(target: string): Promise<string> {
+  if (target.includes("\r") || target.includes("\n") || target.includes("\u0000")) return Promise.resolve("[error] target must not contain line breaks or NUL");
   const os_ = currentOs();
   const [cmd, args]: [string, string[]] =
     os_ === "windows" ? ["cmd", ["/c", "start", "", target]] : os_ === "macos" ? ["open", [target]] : ["xdg-open", [target]];

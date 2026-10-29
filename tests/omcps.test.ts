@@ -98,10 +98,10 @@ describe("feature flags choose the tools the AI sees", () => {
     expect(await main(["--help"])).toBe(0);
     expect(await main(["-h"])).toBe(0);
     expect(await main(["--version"])).toBe(0);
-    expect(out[0]).toContain("npx omcps@latest --allow-all");
+    expect(out[0]).toContain("npx desktop-mcp@latest --allow-all");
     for (const f of ["--allow-all", "--allow-mouse", "--allow-clipboard", "--allow-keyboard", "--transport", "--no-search", "--policy-show", "--region", "--preset"]) expect(out[0], f).toContain(f);
     expect(out[0]).toContain("only web_search/fetch_url touch the network");
-    expect(out.at(-1)).toMatch(new RegExp(`^omcps ${VERSION.replace(/\./g, "\\.")} on OS: `));
+    expect(out.at(-1)).toMatch(new RegExp(`^desktop-mcp ${VERSION.replace(/\./g, "\\.")} on OS: `));
   });
 
   it("--policy-show describes the effective permissions", async () => {

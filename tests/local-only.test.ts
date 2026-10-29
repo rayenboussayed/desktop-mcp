@@ -39,8 +39,8 @@ describe("static guard: no hidden network or cloud dependencies", () => {
     expect(Object.keys(pkg.dependencies ?? {})).not.toContain("@anthropic-ai/sdk");
     expect(Object.keys(pkg.optionalDependencies ?? {})).not.toContain("@anthropic-ai/sdk");
     expect(pkg.peerDependenciesMeta?.["@anthropic-ai/sdk"]).toEqual({ optional: true });
-    expect(pkg.name).toBe("omcps");
-    expect((pkg.bin as unknown as Record<string, string>).omcps).toBe("./dist/bin/omcps.js");
+    expect(pkg.name).toBe("desktop-mcp");
+    expect((pkg.bin as unknown as Record<string, string>)["desktop-mcp"]).toBe("./dist/bin/omcps.js");
   });
   it("OCR is configured with local data only", () => {
     const ocr = readFileSync("src/plugins/ocr.ts", "utf8");

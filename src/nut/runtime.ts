@@ -68,7 +68,7 @@ export async function assertDisplay(env: NodeJS.ProcessEnv = envSource(), platfo
   if (!display) {
     throw new Error(
       "GUI tools need an X11 display, but DISPLAY is not set. Run inside a desktop session, or under a virtual " +
-        "display (e.g. `xvfb-run omcps --allow-all`). Wayland-only sessions are not supported.",
+        "display (e.g. `xvfb-run desktop-mcp --allow-all`). Wayland-only sessions are not supported.",
     );
   }
   const local = /^:(\d+)(\.\d+)?$/.exec(display);

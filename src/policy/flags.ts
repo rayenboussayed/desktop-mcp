@@ -1,9 +1,9 @@
 /**
  * Command-line permission flags, in the style of other MCP servers:
  *
- *   omcps --allow-all
- *   omcps --allow-mouse --allow-keyboard --allow-screen
- *   omcps --allow-files --allow-path ~/projects --ask-shell
+ *   desktop-mcp --allow-all
+ *   desktop-mcp --allow-mouse --allow-keyboard --allow-screen
+ *   desktop-mcp --allow-files --allow-path ~/projects --ask-shell
  *
  * `--allow-<group>` grants a group of features, `--ask-<group>` makes each use require approval. With no base
  * (`--preset` / `--policy` / `--config`) and no flags, nothing is allowed.

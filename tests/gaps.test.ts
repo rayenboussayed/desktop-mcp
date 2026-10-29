@@ -213,7 +213,7 @@ describe("agent: default client and permission policy", () => {
   it("without the optional Anthropic SDK the standalone agent says how to install it (omcps never needs it)", async () => {
     __setSdkLoader(() => Promise.reject(new Error("Cannot find package")));
     try {
-      await expect(new Agent({ search: false }).run("hi")).rejects.toThrow(/needs the Anthropic SDK: npm install @anthropic-ai\/sdk \(the omcps MCP server does not\)/);
+      await expect(new Agent({ search: false }).run("hi")).rejects.toThrow(/needs the Anthropic SDK: npm install @anthropic-ai\/sdk \(the desktop-mcp MCP server does not\)/);
     } finally {
       __setSdkLoader(undefined);
     }

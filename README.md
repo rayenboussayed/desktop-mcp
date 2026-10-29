@@ -1,6 +1,6 @@
-# omcps — an MCP server that lets an AI use your computer
+# desktop-mcp — an MCP server that lets an AI use your computer
 
-`omcps` gives Claude Desktop, Claude Code, VS Code, Cursor or any MCP client controlled access to your machine:
+`desktop-mcp` gives Claude Desktop, Claude Code, VS Code, Cursor or any MCP client controlled access to your machine:
 **shell, files, clipboard, mouse, keyboard, screen (OCR, image and colour search), windows.** Built on
 [nut.js](https://nutjs.dev). Windows, Linux and macOS.
 
@@ -10,10 +10,10 @@
   `--allow-clipboard`, ... and scope them (`--allow-path`, `--region`, `--allow-window`, ...).
 
 ```bash
-npx omcps@latest --allow-all                                   # everything (with safety nets, see below)
-npx omcps@latest --allow-mouse --allow-keyboard --allow-screen # drive the desktop, nothing else
-npx omcps@latest --allow-files --allow-path ~/projects --ask-shell
-npx omcps@latest --help
+npx desktop-mcp@latest --allow-all                                   # everything (with safety nets, see below)
+npx desktop-mcp@latest --allow-mouse --allow-keyboard --allow-screen # drive the desktop, nothing else
+npx desktop-mcp@latest --allow-files --allow-path ~/projects --ask-shell
+npx desktop-mcp@latest --help
 ```
 
 ## Add it to your MCP client
@@ -25,20 +25,20 @@ The same pattern as other npx-based MCP servers: the command is `npx`, the flags
 ```json
 {
   "mcpServers": {
-    "omcps": { "command": "npx", "args": ["omcps@latest", "--allow-mouse", "--allow-keyboard", "--allow-screen", "--allow-windows"] }
+    "desktop-mcp": { "command": "npx", "args": ["desktop-mcp@latest", "--allow-mouse", "--allow-keyboard", "--allow-screen", "--allow-windows"] }
   }
 }
 ```
 
-**Claude Code:** `claude mcp add omcps -- npx omcps@latest --allow-all`
+**Claude Code:** `claude mcp add desktop-mcp -- npx desktop-mcp@latest --allow-all`
 
-**VS Code:** `code --add-mcp '{"name":"omcps","command":"npx","args":["omcps@latest","--allow-all"]}'`
+**VS Code:** `code --add-mcp '{"name":"desktop-mcp","command":"npx","args":["desktop-mcp@latest","--allow-all"]}'`
 
-Run it as an HTTP server instead of stdio: `npx omcps@latest --allow-all --transport streamable-http --port 8000`
+Run it as an HTTP server instead of stdio: `npx desktop-mcp@latest --allow-all --transport streamable-http --port 8000`
 (`http://127.0.0.1:8000/mcp`; binds to localhost and rejects foreign `Host` headers).
 
-> The package is named `omcps`; until it is published to the npm registry, install from the tarball:
-> `npx --package=./omcps-0.4.0.tgz omcps --allow-all`.
+> The package is named `desktop-mcp`; until it is published to the npm registry, install from the tarball:
+> `npx --package=./desktop-mcp-0.4.0.tgz desktop-mcp --allow-all`.
 
 ## Permissions
 
@@ -82,7 +82,7 @@ screen **and** mouse; `screenshot_save` and `screen_record` also need file-write
 
 ### Safety nets for flag-only setups
 
-When you build permissions from flags alone, `omcps` also **denies credential locations** (`~/.ssh`, `~/.aws`,
+When you build permissions from flags alone, `desktop-mcp` also **denies credential locations** (`~/.ssh`, `~/.aws`,
 `~/.gnupg`, `~/.kube`, `~/.netrc`, `/etc/shadow`, ...) and **refuses dangerous shell patterns** (`rm -rf`, `sudo`,
 `mkfs`, `curl | sh`, ...). Opt out explicitly with `--allow-sensitive-paths` / `--allow-dangerous-commands`.
 
@@ -100,7 +100,7 @@ Flags can be layered on a base: `--preset locked|readonly|standard|desktop|safe|
   "paths": { "allow": ["~/notes/**"], "deny": ["~/notes/private"], "readOnly": ["~/notes/archive"] },
   "commands": { "allow": ["^git (status|log|diff)\\b"], "blockDangerous": true },
   "gui": { "windows": ["^Notes"], "regions": [{ "x": 0, "y": 0, "width": 1280, "height": 720 }] },
-  "limits": { "maxActionsPerMinute": 60 }, "audit": { "file": "~/omcps-audit.jsonl" }
+  "limits": { "maxActionsPerMinute": 60 }, "audit": { "file": "~/desktop-mcp-audit.jsonl" }
 }
 ```
 
@@ -145,7 +145,7 @@ Coordinates are in **logical** screen pixels (what clicks expect), also on HiDPI
   `OSAGENT_OCR_LANG_PATH`). Image matching, colour search, recording and windows are pure local code.
 * There is **no cloud provider and no API key** anywhere in the MCP server. The standalone `osagent` agent (a
   separate command in the same package) is the only part that talks to an LLM API; its SDK is an *optional peer
-  dependency* that `omcps` never installs or loads.
+  dependency* that `desktop-mcp` never installs or loads.
 * Tests prove it: a static test fails if any file other than the web tools and the standalone agent contains
   network-client code or a cloud-SDK reference, and an end-to-end test runs the server with **every feature allowed
   inside a network-less namespace** (real desktop, OCR, image/colour search, clipboard, files, shell: all work;
@@ -171,7 +171,7 @@ built in and registered with nut.js, so its own `screen.find(...)` works with th
 Tested against Xvfb with a real window manager (openbox) and real X clients (`xev`, `xterm`, `xclip`). nut.js needed
 compensation:
 
-| finding (Linux / X11) | what omcps does |
+| finding (Linux / X11) | what desktop-mcp does |
 |---|---|
 | `keyboard.type` types shifted punctuation as the base key (`!`→`1`), drops other characters and all non-ASCII | never used on Linux: each character is an explicit key (+Shift); non-ASCII is pasted. All 95 printable ASCII characters verified in a real terminal |
 | `scrollRight` sends X button 6 (= wheel-**left**) | swapped on Linux |
@@ -208,6 +208,6 @@ Coverage notes: `src/bin/*` (two-line launchers) and `src/index.ts` (re-export b
 `policy/engine.ts` carries a `v8 ignore` (the filesystem root always resolves).
 
 **Not verified here:** Windows and macOS themselves (their paths are tested against a fake nut.js and fake
-`powershell`/`cmd`: that checks omcps's logic, not those platforms); the proprietary nut.js plugins (not obtainable);
+`powershell`/`cmd`: that checks desktop-mcp's logic, not those platforms); the proprietary nut.js plugins (not obtainable);
 `screen_highlight`'s overlay (the call is
 tested; the overlay can't be observed headlessly); publishing to the npm registry.

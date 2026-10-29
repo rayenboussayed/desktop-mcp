@@ -1,7 +1,7 @@
 {
-  "name": "omcps",
+  "name": "desktop-mcp",
   "version": "0.4.0",
-  "description": "omcps: an MCP server that lets an AI use your computer (shell, files, clipboard, mouse, keyboard, screen OCR/image search, windows) with per-feature permission flags. Runs entirely locally. Use: npx omcps --allow-all",
+  "description": "desktop-mcp: an MCP server that lets an AI use your computer (shell, files, clipboard, mouse, keyboard, screen OCR/image search, windows) with per-feature permission flags. Runs entirely locally. Use: npx desktop-mcp --allow-all",
   "type": "module",
   "license": "MIT",
   "engines": {
@@ -10,7 +10,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "omcps": "./dist/bin/omcps.js",
+    "desktop-mcp": "./dist/bin/omcps.js",
     "osagent-mcp": "./dist/bin/omcps.js",
     "osagent": "./dist/bin/osagent.js"
   },

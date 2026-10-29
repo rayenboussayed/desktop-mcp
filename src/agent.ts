@@ -124,13 +124,13 @@ export class Agent {
 
   /**
    * The model client. The standalone agent is the ONLY part of this package that talks to an LLM API, so the
-   * Anthropic SDK is an optional peer dependency, loaded here on first use (never by the omcps MCP server).
+   * Anthropic SDK is an optional peer dependency, loaded here on first use (never by the desktop-mcp MCP server).
    * @returns The resulting value.
    */
   private async clientFor(): Promise<MessagesClient> {
     if (!this.client) {
       const sdk = await loadSdk().catch(() => {
-        throw new Error("the standalone agent needs the Anthropic SDK: npm install @anthropic-ai/sdk (the omcps MCP server does not)");
+        throw new Error("the standalone agent needs the Anthropic SDK: npm install @anthropic-ai/sdk (the desktop-mcp MCP server does not)");
       });
       this.client = new sdk.default() as unknown as MessagesClient;
     }

@@ -338,7 +338,7 @@ describe("main() in-process", () => {
   it("prints the version; rejects bad flags, transports and policies", async () => {
     const { out, err } = logs();
     expect(await main(["--version"])).toBe(0);
-    expect(out[0]).toMatch(new RegExp(`^omcps ${VERSION.replace(/\./g, "\\.")} on OS: `));
+    expect(out[0]).toMatch(new RegExp(`^desktop-mcp ${VERSION.replace(/\./g, "\\.")} on OS: `));
     expect(await main(["--bogus"])).toBe(2);
     expect(await main(["--transport", "carrier-pigeon"])).toBe(2);
     expect(await main(["--preset", "nonsense"])).toBe(2);
@@ -415,7 +415,7 @@ describe("compiled binary", () => {
       p.on("close", (code) => resolve({ code, out, err }));
     });
   it("--version, bad transport, --policy-show", async () => {
-    expect((await run(["--version"])).out).toContain("omcps");
+    expect((await run(["--version"])).out).toContain("desktop-mcp");
     expect((await run(["--transport", "x"])).code).toBe(2);
     expect((await run(["--preset", "locked", "--policy-show"])).out).toContain("Permission policy: locked");
   });

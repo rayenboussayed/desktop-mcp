@@ -1,8 +1,8 @@
 /**
  * MCP server giving an agent controlled access to the host OS.
  *
- * Run (stdio):   omcps   node dist/bin/omcps.js
- * Permissions:   --allow-all | --allow-mouse --allow-keyboard --allow-screen ...   (see `omcps --help`)
+ * Run (stdio):   desktop-mcp   node dist/bin/desktop-mcp.js
+ * Permissions:   --allow-all | --allow-mouse --allow-keyboard --allow-screen ...   (see `desktop-mcp --help`)
  *                --preset / --config FILE   a base policy that the flags are layered on
  *                --policy-show              print the effective policy and exit
  * Features:      --gui         force the desktop tools on (automatic when a desktop feature is allowed)
@@ -222,10 +222,10 @@ export interface MainIo {
   onListening?: (port: number) => void;
 }
 
-const HELP = `omcps - an MCP server that lets an AI use your computer: shell, files, clipboard, mouse, keyboard,
+const HELP = `desktop-mcp - an MCP server that lets an AI use your computer: shell, files, clipboard, mouse, keyboard,
 screen (OCR, image and colour search), windows. Everything runs locally; only web_search/fetch_url touch the network.
 
-Usage: omcps [options]          (e.g.  npx omcps@latest --allow-all)
+Usage: desktop-mcp [options]          (e.g.  npx desktop-mcp@latest --allow-all)
 
 Server:
   --transport stdio|streamable-http   default stdio;  --host <h> --port <n> for http (default 127.0.0.1:8000)
@@ -261,7 +261,7 @@ export async function main(argv: string[] = process.argv.slice(2), io: MainIo = 
       },
     }));
   } catch (e) {
-    console.error(`omcps: ${(e as Error).message}`);
+    console.error(`desktop-mcp: ${(e as Error).message}`);
     return 2;
   }
   if (values.help) {
@@ -269,12 +269,12 @@ export async function main(argv: string[] = process.argv.slice(2), io: MainIo = 
     return 0;
   }
   if (values.version) {
-    console.log(`omcps ${VERSION} on ${describePlatform().split("\n")[0]}`);
+    console.log(`desktop-mcp ${VERSION} on ${describePlatform().split("\n")[0]}`);
     return 0;
   }
   const transport = values.transport as string;
   if (transport !== "stdio" && transport !== "streamable-http") {
-    console.error("omcps: --transport must be 'stdio' or 'streamable-http'");
+    console.error("desktop-mcp: --transport must be 'stdio' or 'streamable-http'");
     return 2;
   }
   let engine: PermissionEngine;
@@ -284,7 +284,7 @@ export async function main(argv: string[] = process.argv.slice(2), io: MainIo = 
     hint = !p.hasBase && p.granted.length === 0;
     engine = new PermissionEngine(p.policy, { activeWindowTitle: activeTitle });
   } catch (e) {
-    console.error(`omcps: ${e instanceof PolicyError ? e.message : (e as Error).message}`);
+    console.error(`desktop-mcp: ${e instanceof PolicyError ? e.message : (e as Error).message}`);
     return 2;
   }
   const desktop = values.gui || (await desktopTools()).some((t) => engine.isVisible(t.name));
@@ -293,15 +293,15 @@ export async function main(argv: string[] = process.argv.slice(2), io: MainIo = 
     console.log(engine.describe((await allTools(opts)).filter((t) => engine.isVisible(t.name))));
     return 0;
   }
-  console.error(`omcps: permissions "${engine.policy.name}"${engine.policy.name === "full" ? " (no restrictions)" : ""}`);
-  if (hint) console.error("omcps: nothing is allowed yet. Add flags such as --allow-all, --allow-mouse --allow-keyboard --allow-screen, or run omcps --help.");
+  console.error(`desktop-mcp: permissions "${engine.policy.name}"${engine.policy.name === "full" ? " (no restrictions)" : ""}`);
+  if (hint) console.error("desktop-mcp: nothing is allowed yet. Add flags such as --allow-all, --allow-mouse --allow-keyboard --allow-screen, or run desktop-mcp --help.");
   if (transport === "streamable-http") {
     const port = Number.parseInt(values.port as string, 10);
     const http = await serveHttp(opts, values.host as string, port);
     io.signal?.addEventListener("abort", () => http.close());
     const actual = (http.address() as { port: number }).port;
     io.onListening?.(actual);
-    console.error(`omcps listening on http://${values.host}:${actual}/mcp`);
+    console.error(`desktop-mcp listening on http://${values.host}:${actual}/mcp`);
     await new Promise<void>((resolve) => http.once("close", resolve));
     return 0;
   }

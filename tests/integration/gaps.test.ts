@@ -19,6 +19,8 @@ import { PermissionEngine, pathRegExp } from "../../src/policy/engine.js";
 import { PolicySchema } from "../../src/policy/schema.js";
 import { callTool } from "../../src/tools/base.js";
 import { listDir } from "../../src/tools/files.js";
+import { runCommand } from "../../src/tools/shell.js";
+import { runCommandTool } from "../../src/tools/shell.js";
 import { DEFAULT_SEARCH_URL, fetchUrl, parseResults, searchUrl } from "../../src/tools/search.js";
 import * as sys from "../../src/tools/system.js";
 import { main as cliMain, makeLineReader, type CliIo } from "../../src/cli.js";
@@ -59,6 +61,31 @@ describe("exec: process-tree kill and capture limits", () => {
     expect(signalCode(null)).toBeNull();
     expect(signalCode("SIGKILL")).toBe(-9);
     expect(signalCode("SIGNOPE" as NodeJS.Signals)).toBe(-1);
+  });
+});
+
+
+
+describe("shell and exec safety", () => {
+  it("guarded killTree ignores zero and negative PIDs even in Windows mode", async () => {
+    expect(() => killTree({ pid: 0 } as never)).not.toThrow();
+    expect(() => killTree({ pid: -1 } as never)).not.toThrow();
+    withPlatform("win32", () => expect(() => killTree({ pid: 99_999_999 } as never)).not.toThrow());
+  });
+  it("runCommand validates its timeout and cwd before spawning a shell", async () => {
+    expect(await runCommand("echo hi", 0)).toBe("[error] timeout must be a positive number of seconds (got 0)");
+    expect(await runCommand("echo hi", 60, "")).toBe("[error] cwd must be a non-empty string (got )");
+    expect(await runCommand("echo hi", 60, 8 as unknown as string)).toBe("[error] cwd must be a non-empty string (got 8)");
+  });
+  it("schema rejects an invalid timeout before runCommand is reached", async () => {
+    await expect(callTool(runCommandTool, { command: "echo hi", timeout: 0 })).rejects.toThrow();
+  });
+  it("runs the Windows PowerShell branch with a custom working directory", async () => {
+    const bin = tmpDir();
+    makeBin(bin, "powershell", "printf '%s\\n' \"$*\"");
+    await withPlatform("win32", () => withEnv({ PATH: `${bin}:/usr/bin:/bin` }, async () => {
+      expect(await runCommand("echo hi", 3, ".")).not.toMatch(/\[error\]/);
+    }));
   });
 });
 

@@ -11,19 +11,14 @@ import { defineTool, truncate } from "./base.js";
  * @returns A human-readable result.
  */
 export async function runCommand(command: string, timeout = 60, cwd?: string): Promise<string> {
-  let r;
-  try {
-    if (currentOs() === "windows") {
-      r = await execText("powershell", ["-NoProfile", "-NonInteractive", "-Command", command], {
+  if (!Number.isInteger(timeout) || timeout < 1) return `[error] timeout must be a positive number of seconds (got ${timeout})`;
+  if (cwd !== undefined && (typeof cwd !== "string" || cwd === "")) return `[error] cwd must be a non-empty string (got ${String(cwd)})`;
+  const r = currentOs() === "windows"
+    ? await execText("powershell", ["-NoProfile", "-NonInteractive", "-Command", command], {
         cwd: cwd ? expandUser(cwd) : undefined,
         timeoutMs: timeout * 1000,
-      });
-    } else {
-      r = await execText(command, [], { shell: true, cwd: cwd ? expandUser(cwd) : undefined, timeoutMs: timeout * 1000 });
-    }
-  } catch (e) {
-    return `[error] ${(e as Error).message}`;
-  }
+      })
+    : await execText(command, [], { shell: true, cwd: cwd ? expandUser(cwd) : undefined, timeoutMs: timeout * 1000 });
   if (r.timedOut) return truncate(`[timeout after ${timeout}s]\n${r.stdout}`);
   if (r.error) return `[error] ${r.error.message}`;
   const code = r.code ?? signalCode(r.signal);
@@ -38,7 +33,7 @@ export const runCommandTool = defineTool({
     "stdout and stderr. Commands must be non-interactive.",
   shape: {
     command: z.string().describe("The command line to run."),
-    timeout: z.number().int().default(60).describe("Seconds before the command is killed (default 60)."),
+    timeout: z.number().int().min(1).default(60).describe("Seconds before the command is killed (default 60)."),
     cwd: z.string().optional().describe("Working directory (optional)."),
   },
   run: ({ command, timeout, cwd }) => runCommand(command, timeout, cwd),

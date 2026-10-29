@@ -26,7 +26,7 @@ const MAX_CAPTURE = 8 * 1024 * 1024;
  * @param child - Child process to terminate.
  */
 export function killTree(child: ChildProcess): void {
-  if (child.pid === undefined) return;
+  if (child.pid === undefined || !Number.isInteger(child.pid) || child.pid <= 0) return;
   try {
     if (process.platform === "win32") {
       spawn("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore", windowsHide: true }).on("error", () => {});

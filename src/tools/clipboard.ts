@@ -20,8 +20,11 @@ export async function pasteText(text: string, restore = true): Promise<void> {
   await tapKeys([shortcutModifier(), "v"]); // terminals usually need ctrl+shift+v: ask for that via press_key instead
   await sleep(250); // let the target application read the clipboard first
   if (!failed(previous)) {
+    // xclip/Wayland return ownership asynchronously, under machine load more than once, so keep claiming it until the
+    // restored value is readable or the deadline expires; never hand the selection back to the caller half-empty.
+    const deadline = Date.now() + 4000;
+    while (Date.now() < deadline && (await clipboardGet()) !== previous) await clipboardSet(previous);
     await clipboardSet(previous);
-    await sleep(200); // give X11/Wayland ownership transfer time to settle before returning
   }
 }
 

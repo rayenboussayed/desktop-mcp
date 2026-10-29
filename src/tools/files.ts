@@ -1,11 +1,9 @@
-import { mkdir, readFile as fsReadFile, readdir, stat, writeFile as fsWriteFile } from "node:fs/promises";
+import { constants as fsConstants, mkdir, open, readdir, stat, writeFile as fsWriteFile } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
 import { resolveUserPath } from "../platform.js";
 import { defineTool, truncate } from "./base.js";
 
-// eslint-disable-next-line security/detect-non-literal-fs-filename
-const isFile = async (p: string): Promise<boolean> => (await stat(p).catch(() => undefined))?.isFile() === true;
 // eslint-disable-next-line security/detect-non-literal-fs-filename
 const isDir = async (p: string): Promise<boolean> => (await stat(p).catch(() => undefined))?.isDirectory() === true;
 
@@ -27,11 +25,34 @@ export function splitLines(text: string): string[] {
  * @param limit - Maximum lines to read.
  * @returns The requested file content.
  */
+
+/**
+ * Read a UTF-8 file with line numbers, using a no-follow open for defence against concurrent symlink swaps.
+ * @param p - File path.
+ * @param offset - Line offset to start reading from.
+ * @param limit - Maximum lines to read.
+ * @returns The requested file content.
+ */
 export async function readFile(p: string, offset = 0, limit = 2000): Promise<string> {
   const full = resolveUserPath(p);
-  if (!(await isFile(full))) return `[error] not a file: ${full}`;
-  // eslint-disable-next-line security/detect-non-literal-fs-filename
-  const lines = splitLines(await fsReadFile(full, "utf8"));
+  let data: string;
+  try {
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    const handle = await open(full, (fsConstants as { O_RDONLY: number; O_NOFOLLOW: number }).O_RDONLY | (fsConstants as { O_NOFOLLOW: number }).O_NOFOLLOW);
+    try {
+      if (!(await handle.stat()).isFile()) return `[error] not a file: ${full}`;
+      data = await handle.readFile("utf8");
+    } finally {
+      try {
+        await handle.close();
+      } catch {
+        // Closing an already-closed handle must not mask the read result.
+      }
+    }
+  } catch {
+    return `[error] not a file: ${full}`;
+  }
+  const lines = splitLines(data);
   const chunk = lines.slice(offset, offset + limit);
   const body = chunk.map((line, i) => `${offset + i + 1}\t${line}`).join("\n");
   const more = offset + limit < lines.length ? `\n[${lines.length - offset - chunk.length} more lines]` : "";

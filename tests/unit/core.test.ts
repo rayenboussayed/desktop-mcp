@@ -1,4 +1,4 @@
-import { chmodSync, mkdirSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, symlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
@@ -133,6 +133,15 @@ describe("file tools", () => {
     expect(out).not.toContain("line5");
     expect(out).toContain("[5 more lines]");
     expect(await readFile(path.join(d, "nope"))).toContain("[error] not a file");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    mkdirSync(path.join(d, "nope-dir"), { recursive: true });
+    expect(await readFile(path.join(d, "nope-dir"))).toContain("[error] not a file");
+    // A symlink at the final component is refused, even if its target is a readable file.
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    writeFileSync(path.join(d, "real.txt"), "real");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    symlinkSync(path.join(d, "real.txt"), path.join(d, "linked.txt"));
+    expect(await readFile(path.join(d, "linked.txt"))).toContain("[error] not a file");
     expect(await listDir(path.join(d, "nope"))).toContain("[error] not a directory");
     expect(await listDir(d)).toContain("big.txt");
     // eslint-disable-next-line security/detect-non-literal-fs-filename

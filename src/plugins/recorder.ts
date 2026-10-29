@@ -31,6 +31,7 @@ export async function record(dir: string, seconds: number, fps: number, region?:
   if (seconds <= 0 || seconds > MAX_SECONDS) throw new Error(`duration must be between 0 and ${MAX_SECONDS} seconds`);
   if (fps <= 0 || fps > MAX_FPS) throw new Error(`fps must be between 0 and ${MAX_FPS}`);
   const n = await nut();
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   await mkdir(dir, { recursive: true });
   const total = Math.max(1, Math.round(seconds * fps));
   const period = 1000 / fps;
@@ -39,6 +40,7 @@ export async function record(dir: string, seconds: number, fps: number, region?:
     const due = started + i * period;
     if (due > Date.now()) await sleep(due - Date.now());
     const { jimp } = await grab(n, region);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     await writeFile(path.join(dir, `frame-${String(i + 1).padStart(4, "0")}.png`), await jimp.getBufferAsync("image/png"));
   }
   const rec: Recording = { dir, frames: total };

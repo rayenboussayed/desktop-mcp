@@ -96,7 +96,9 @@ describe("clipboard", () => {
     });
     // isolated PATH: execvp keeps searching PATH when a shebang interpreter is missing, which would reach the real xclip
     const bad = tmpDir();
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(path.join(bad, "xclip"), "#!/nonexistent/interp\n");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     chmodSync(path.join(bad, "xclip"), 0o755);
     await withEnv({ PATH: bad }, async () => {
       expect(await sys.clipboardGet()).toContain("[error]");
@@ -131,9 +133,11 @@ describe.skipIf(!isPosix)("open_path", () => {
     makeBin(bin, "open", `echo "mac $@" > ${log}`);
     expect(await withEnv({ PATH: `${bin}:/usr/bin:/bin` }, () => sys.openPath("https://example.com"))).toBe("opened https://example.com");
     await sleep(300);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(readFileSync(log, "utf8").trim()).toBe("https://example.com");
     await withPlatform("darwin", () => withEnv({ PATH: `${bin}:/usr/bin:/bin` }, () => sys.openPath("/tmp")));
     await sleep(300);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(readFileSync(log, "utf8").trim()).toBe("mac /tmp");
   });
   it("reports a missing opener", async () => {
@@ -145,6 +149,7 @@ describe.skipIf(!isPosix)("open_path", () => {
     makeBin(bin, "cmd", `printf '%s\\n' "$*" > ${log}`);
     await withPlatform("win32", () => withEnv({ PATH: `${bin}:/usr/bin:/bin` }, () => sys.openPath("C:\\f.txt")));
     await sleep(300);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(readFileSync(log, "utf8").trim()).toBe("/c start  C:\\f.txt");
   });
 });
@@ -167,14 +172,23 @@ describe("file management", () => {
    */
   function tree(): string {
     const d = tmpDir();
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     mkdirSync(path.join(d, "src/deep"), { recursive: true });
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     mkdirSync(path.join(d, "node_modules/x"), { recursive: true });
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     mkdirSync(path.join(d, ".git"), { recursive: true });
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(path.join(d, "a.txt"), "alpha needle\nbeta\n");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(path.join(d, "B.TXT"), "needle again");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(path.join(d, "src/deep/c.py"), "print('needle')\r\nline2");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(path.join(d, "node_modules/x/skip.txt"), "needle");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(path.join(d, ".git/skip.txt"), "needle");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(path.join(d, "bin.dat"), Buffer.from([0xff, 0xfe, 0x00, 0x6e, 0x65, 0x65, 0x64, 0x6c, 0x65]));
     return d;
   }
@@ -191,8 +205,11 @@ describe("file management", () => {
 
   it("find_files does not follow directory symlinks but lists file symlinks", async () => {
     const d = tree();
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     symlinkSync(path.join(d, "src"), path.join(d, "linkdir"));
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     symlinkSync(path.join(d, "a.txt"), path.join(d, "linkfile.txt"));
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     symlinkSync(path.join(d, "nowhere"), path.join(d, "dangling"));
     const out = await sys.findFiles("*", d);
     expect(out).not.toContain("linkdir/deep");
@@ -215,14 +232,19 @@ describe("file management", () => {
   it("make_dir, copy_path, move_path", async () => {
     const d = tmpDir();
     expect(await sys.makeDir(path.join(d, "x/y"))).toBe(`created ${path.join(d, "x/y")}`);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(path.join(d, "f.txt"), "data");
     await sys.copyPath(path.join(d, "f.txt"), path.join(d, "new/dir/f2.txt"));
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(readFileSync(path.join(d, "new/dir/f2.txt"), "utf8")).toBe("data");
     await sys.copyPath(path.join(d, "new"), path.join(d, "newcopy"));
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(existsSync(path.join(d, "newcopy/dir/f2.txt"))).toBe(true);
     await sys.copyPath(path.join(d, "new"), path.join(d, "newcopy")); // merging into an existing dir is allowed
     await sys.movePath(path.join(d, "f.txt"), path.join(d, "moved.txt"));
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(existsSync(path.join(d, "f.txt"))).toBe(false);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(readFileSync(path.join(d, "moved.txt"), "utf8")).toBe("data");
     await expect(sys.movePath(path.join(d, "nope"), path.join(d, "z"))).rejects.toThrow();
   });
@@ -231,11 +253,14 @@ describe("file management", () => {
     // /dev/shm is a different filesystem from the temp dir on most Linux hosts
     if (!existsSync("/dev/shm")) return;
     const src = path.join(tmpDir(), "s.txt");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(src, "x-device");
     const dst = path.join("/dev/shm", `osagent-${process.pid}.txt`);
     try {
       await sys.movePath(src, dst);
+      // eslint-disable-next-line security/detect-non-literal-fs-filename
       expect(readFileSync(dst, "utf8")).toBe("x-device");
+      // eslint-disable-next-line security/detect-non-literal-fs-filename
       expect(existsSync(src)).toBe(false);
     } finally {
       await sys.deletePath(dst);
@@ -244,34 +269,45 @@ describe("file management", () => {
 
   it("delete_path guards roots, home, and directories", async () => {
     const d = tmpDir();
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     mkdirSync(path.join(d, "dir/sub"), { recursive: true });
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(path.join(d, "dir/sub/f"), "x");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(path.join(d, "file"), "x");
     expect(await sys.deletePath("/", true)).toBe("[refused] will not delete /");
     expect(await sys.deletePath("~", true)).toBe(`[refused] will not delete ${os.homedir()}`);
     expect(await sys.deletePath(path.join(d, "dir"))).toBe("[error] it is a directory; pass recursive=true");
     expect(await sys.deletePath(path.join(d, "dir"), true)).toBe(`deleted ${path.join(d, "dir")}`);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(existsSync(path.join(d, "dir"))).toBe(false);
     expect(await sys.deletePath(path.join(d, "file"))).toContain("deleted");
     expect(await sys.deletePath(path.join(d, "file"))).toContain("[error] not found");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     symlinkSync(d, path.join(tmpDir(), "ln")); // a symlink to a dir is removed as a link, not recursed
     const target = tmpDir();
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(path.join(target, "keep"), "k");
     const link = path.join(tmpDir(), "link");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     symlinkSync(target, link);
     expect(await sys.deletePath(link)).toContain("deleted");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(existsSync(path.join(target, "keep"))).toBe(true);
   });
 
   it("edit_file replaces exact text", async () => {
     const d = tmpDir();
     const f = path.join(d, "e.txt");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(f, "one two one\r\n$& stays");
     expect(await sys.editFile(f, "two", "2")).toContain("replaced 1 occurrence(s)");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(readFileSync(f, "utf8")).toBe("one 2 one\r\n$& stays"); // CRLF preserved
     expect(await sys.editFile(f, "one", "1")).toContain("appears 2 times");
     expect(await sys.editFile(f, "one", "1", true)).toContain("replaced 2 occurrence(s)");
     expect(await sys.editFile(f, "stays", "$& $1")).toContain("replaced 1"); // no regexp replacement patterns
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(readFileSync(f, "utf8")).toBe("1 2 1\r\n$& $& $1");
     expect(await sys.editFile(f, "absent", "x")).toBe("[error] text to replace was not found");
     expect(await sys.editFile(f, "", "x")).toBe("[error] text to replace must not be empty");

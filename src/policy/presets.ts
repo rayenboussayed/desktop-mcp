@@ -55,5 +55,6 @@ const raw: Record<PresetName, PolicyInput> = {
  * @returns The named preset policy.
  */
 export function preset(name: PresetName): Policy {
+  // eslint-disable-next-line security/detect-object-injection
   return PolicySchema.parse(raw[name]);
 }

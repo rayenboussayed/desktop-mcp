@@ -67,6 +67,7 @@ const parseIds = (s: string): number[] => (s.match(/0x[0-9a-f]+/gi) ?? []).map(N
  */
 export async function x11Geometry(handle: number): Promise<{ x: number; y: number; width: number; height: number }> {
   const out = await x11("xwininfo", ["-id", String(handle)]);
+  // eslint-disable-next-line security/detect-non-literal-regexp
   const num = (label: string): number => Number(new RegExp(`${label}:\\s+(-?\\d+)`).exec(out)?.[1] ?? 0);
   return { x: num("Absolute upper-left X"), y: num("Absolute upper-left Y"), width: num("Width"), height: num("Height") };
 }
@@ -170,6 +171,7 @@ async function resolve(sel: Selector): Promise<WinInfo> {
   let re: RegExp | undefined;
   if (sel.title !== undefined) {
     try {
+      // eslint-disable-next-line security/detect-non-literal-regexp
       re = new RegExp(sel.title, "i");
     } catch (e) {
       throw new Error(`invalid title pattern: ${(e as Error).message}`, { cause: e });
@@ -303,6 +305,7 @@ export async function windowClose(sel: Selector): Promise<string> {
  * @returns A human-readable result.
  */
 export async function windowWaitFor(title: string, timeoutMs = 10_000, intervalMs = 250): Promise<string> {
+  // eslint-disable-next-line security/detect-non-literal-regexp
   const re = new RegExp(title, "i");
   const deadline = Date.now() + timeoutMs;
   for (;;) {

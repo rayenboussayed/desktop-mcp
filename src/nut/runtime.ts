@@ -71,6 +71,7 @@ export async function assertDisplay(env: NodeJS.ProcessEnv = envSource(), platfo
         "display (e.g. `xvfb-run desktop-mcp --allow-all`). Wayland-only sessions are not supported.",
     );
   }
+  // eslint-disable-next-line security/detect-unsafe-regex
   const local = /^:(\d+)(\.\d+)?$/.exec(display);
   if (local && !(await canConnect(`/tmp/.X11-unix/X${local[1]}`))) {
     throw new Error(

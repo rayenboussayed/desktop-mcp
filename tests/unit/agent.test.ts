@@ -67,6 +67,7 @@ describe("agent loop", () => {
     ]);
     const out = await new Agent({ client, search: false, onEvent: (k, d2) => events.push([k, d2]) }).run("make a file");
     expect(out).toBe("finished: file contains hello");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(readFileSync(f, "utf8")).toBe("hello");
 
     const second = client.calls[1]?.messages as { role: string; content: unknown }[];

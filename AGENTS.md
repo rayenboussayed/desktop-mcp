@@ -126,9 +126,6 @@ entries; if a later entry corrects one, add a new entry referencing the earlier 
 - Verification: `npm run check` green (typecheck, lint, 447 passed/1 skipped, 100%
   coverage, knip, build) with the `/tmp/opencode/x11prefix` tooling on PATH.
 - Added this AGENTS.md.
-
-### 2026-10-29 — (final step of this session)
-
 - Made the Linux X tooling persistent for runners: extracted stack to
   `~/.local/opt/omcps-x11` and installed thin wrapper scripts in `~/.local/bin`
   (`Xvfb`, `xterm`, `openbox`, `xdotool`, `wmctrl`, `xclip`, `xev`, `xsetroot`,

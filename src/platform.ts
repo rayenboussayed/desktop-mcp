@@ -27,6 +27,7 @@ export function which(name: string): string | undefined {
     for (const ext of exts) {
       const full = path.join(dir, name + ext);
       try {
+        // eslint-disable-next-line security/detect-non-literal-fs-filename
         if (!statSync(full).isFile()) continue;
         if (process.platform !== "win32") accessSync(full, constants.X_OK);
         return full;

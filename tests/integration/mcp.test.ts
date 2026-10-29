@@ -115,6 +115,7 @@ describe("protocol (in-memory client <-> real server)", () => {
     const { client, close } = await connect({});
     const f = path.join(tmpDir(), "x.txt");
     expect(textOf(await client.callTool({ name: "write_file", arguments: { path: f, content: "hello mcp" } }))).toContain("wrote 9 chars");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(readFileSync(f, "utf8")).toBe("hello mcp");
     expect(textOf(await client.callTool({ name: "run_command", arguments: { command: "echo via-mcp" } }))).toContain("via-mcp");
     expect(textOf(await client.callTool({ name: "edit_file", arguments: { path: f, old: "mcp", new: "MCP" } }))).toContain("replaced 1");
@@ -197,6 +198,7 @@ describe("approvals through MCP elicitation", () => {
     });
     const w = writeArgs();
     expect(textOf(await client.callTool(w))).toContain("wrote 11 chars");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(existsSync(w.arguments.path as string)).toBe(true);
     expect(seen[0]).toContain("write_file(");
     expect(seen[0]).toContain("<11 chars>"); // the file body is never shown
@@ -210,6 +212,7 @@ describe("approvals through MCP elicitation", () => {
     expect(textOf(await client.callTool(w2))).toContain("did not approve");
     answer = { action: "cancel" };
     expect(textOf(await client.callTool(w2))).toContain("did not approve");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(existsSync(w2.arguments.path as string)).toBe(false);
     await close();
   });
@@ -252,6 +255,7 @@ describe("audit log and limits through the server", () => {
     const over = await client.callTool({ name: "system_info", arguments: {} });
     expect(textOf(over)).toContain("budget of 3 is used up");
     await close();
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     const lines = readFileSync(log, "utf8").trim().split("\n").map((l) => JSON.parse(l));
     expect(lines.map((l) => [l.tool, l.allowed])).toEqual([["system_info", true], ["get_env", true], ["list_processes", true], ["system_info", false]]);
     expect(lines[0].policy).toBe("audited");
@@ -362,12 +366,14 @@ describe("main() in-process", () => {
   it("prints the version; rejects bad flags, transports and policies", async () => {
     const { out, err } = logs();
     expect(await main(["--version"])).toBe(0);
+    // eslint-disable-next-line security/detect-non-literal-regexp
     expect(out[0]).toMatch(new RegExp(`^desktop-mcp ${VERSION.replace(/\./g, "\\.")} on OS: `));
     expect(await main(["--bogus"])).toBe(2);
     expect(await main(["--transport", "carrier-pigeon"])).toBe(2);
     expect(await main(["--preset", "nonsense"])).toBe(2);
     expect(err.join("\n")).toContain("unknown preset 'nonsense'");
     const bad = path.join(tmpDir(), "p.json");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(bad, '{"default":"maybe"}');
     expect(await main(["--policy", bad])).toBe(2);
     expect(err.join("\n")).toContain("invalid policy");

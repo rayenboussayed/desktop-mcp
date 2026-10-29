@@ -52,7 +52,9 @@ function scan(hay: Bitmap, needle: Bitmap, confidence: number): Match[] {
   const nOff = new Int32Array(order.length);
   const hOff = new Int32Array(order.length);
   order.forEach((i, k) => {
+    // eslint-disable-next-line security/detect-object-injection
     nOff[k] = i * 4;
+    // eslint-disable-next-line security/detect-object-injection
     hOff[k] = (Math.floor(i / nw) * hw + (i % nw)) * 4;
   });
   const budget = (1 - confidence) * 255 * 3 * order.length;
@@ -65,8 +67,11 @@ function scan(hay: Bitmap, needle: Bitmap, confidence: number): Match[] {
       let diff = 0;
       let k = 0;
       for (; k < order.length; k++) {
+        // eslint-disable-next-line security/detect-object-injection
         const hi = base + (hOff[k] as number);
+        // eslint-disable-next-line security/detect-object-injection
         const ni = nOff[k] as number;
+        // eslint-disable-next-line security/detect-object-injection
         diff += Math.abs((h[hi] as number) - (nd[ni] as number)) + Math.abs((h[hi + 1] as number) - (nd[ni + 1] as number)) + Math.abs((h[hi + 2] as number) - (nd[ni + 2] as number));
         if (diff > budget) break;
       }

@@ -117,6 +117,7 @@ describe("plugin status with injected package lookups", () => {
 describe("files and search edge cases", () => {
   it("list_dir shows a dangling symlink without a size", async () => {
     const d = tmpDir();
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     symlinkSync(path.join(d, "nowhere"), path.join(d, "dangling"));
     expect(await listDir(d)).toBe("file\t\tdangling");
   });
@@ -165,12 +166,15 @@ describe("system tools: error and platform branches", () => {
   });
   it("search_in_files skips files over 10 MiB", async () => {
     const d = tmpDir();
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(path.join(d, "huge.txt"), "needle" + "x".repeat(11 << 20));
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(path.join(d, "small.txt"), "needle");
     expect(await sys.searchInFiles("needle", d)).toBe(`${path.join(d, "small.txt")}:1: needle`);
   });
   it("the tool wrappers call through with validated defaults", async () => {
     const d = tmpDir();
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(path.join(d, "a.txt"), "findme");
     expect(await callTool(sys.findFilesTool, { pattern: "*.txt", root: d })).toBe(path.join(d, "a.txt"));
     expect(await callTool(sys.searchInFilesTool, { text: "findme", root: d })).toContain("a.txt:1: findme");
@@ -266,6 +270,7 @@ describe("cli: policy flags, default streams and default agent", () => {
     expect(h.created[0]?.policy?.policy.name).toBe("readonly");
     expect(h.created[0]?.policy?.staticMode("web_search")).toBe("deny");
     const f = path.join(tmpDir(), "p.json");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(f, '{"name":"filepol","default":"allow"}');
     const h2 = harness();
     await cliMain(["--policy", f, "go"], h2.io);
@@ -289,6 +294,7 @@ describe("cli: policy flags, default streams and default agent", () => {
     const err = vi.spyOn(console, "error").mockImplementation(() => {});
     expect(await cliMain(["--preset", "nonsense", "x"], harness().io)).toBe(2);
     const bad = path.join(tmpDir(), "p.json");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(bad, '{"commands":{"allow":["("]}}');
     expect(await cliMain(["--policy", bad, "x"], harness().io)).toBe(2);
     expect(err.mock.calls.map((c) => c.join(" ")).join("\n")).toMatch(/unknown preset 'nonsense'[\s\S]*invalid commands\.allow pattern/);
@@ -379,6 +385,7 @@ describe("mcp server: remaining edges", () => {
   it("main reports a policy that fails for a non-policy reason", async () => {
     const err = vi.spyOn(console, "error").mockImplementation(() => {});
     const f = path.join(tmpDir(), "p.json");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(f, '{"commands":{"deny":["("]}}');
     expect(await mcpMain(["--policy", f])).toBe(2);
     expect(err.mock.calls.join("\n")).toContain("invalid commands.deny pattern");

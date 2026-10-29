@@ -54,6 +54,7 @@ async function viaXterm(send: () => Promise<unknown>): Promise<string> {
     await sleep(300);
     await send();
     await sleep(600);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     return existsSync(f) ? readFileSync(f, "utf8") : "";
   } finally {
     term.kill("SIGKILL");

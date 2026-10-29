@@ -190,6 +190,7 @@ describe.skipIf(!isPosix)("Linux X11 helpers (shim tools)", () => {
       expect(await win.windowRestore({ title: "Target" })).toContain("restored handle=4660");
       expect(await win.windowClose({ title: "Target" })).toBe('asked to close handle=4660 "Target"');
     });
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(readFileSync(log, "utf8").trim().split("\n")).toEqual([
       "xdotool windowminimize 4660", "xdotool windowmap 4660", "xdotool windowactivate 4660", "wmctrl -i -c 0x1234",
     ]);
@@ -198,6 +199,7 @@ describe.skipIf(!isPosix)("Linux X11 helpers (shim tools)", () => {
       await expect(win.windowMinimize({ title: "Target" })).rejects.toThrow(/xdotool is needed for window control on Linux/);
       await expect(win.windowClose({ title: "Target" })).rejects.toThrow(/wmctrl is needed/);
     });
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(existsSync(log)).toBe(true);
   });
 });

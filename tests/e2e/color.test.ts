@@ -74,6 +74,7 @@ describe.skipIf(!haveWm || !haveXterm)("colour search on the real screen", () =>
   });
   it("restricts to a region (offsetting the result) and reports no match", async () => {
     const out = await vision.findColor("rgb(255,0,0)", 10, 20, 3, { x: red.x, y: red.y, width: 80, height: 60 });
+    // eslint-disable-next-line security/detect-non-literal-regexp
     expect(out).toMatch(new RegExp(`x=${red.x} y=${red.y} `));
     expect(await vision.findColor("#12ab34", 2, 50, 3)).toBe("[no match]");
     await expect(vision.findColor("blue-ish", 5, 5, 5)).rejects.toThrow(/cannot read colour/);

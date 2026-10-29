@@ -198,6 +198,7 @@ describe.skipIf(!haveWm || !haveXterm)("image matching on real screen pixels", (
   });
 
   it("accepts a base64 template and several scales", async () => {
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     const b64 = readFileSync(tpl).toString("base64");
     expect(await vision.findImage(base({ template: undefined, template_base64: `data:image/png;base64,${b64}` }))).toContain("match 1");
     const half = (await Jimp.read(tpl)).resize(80, 35);
@@ -243,8 +244,10 @@ describe.skipIf(!haveWm)("screen recording", () => {
     const dir = path.join(tmpDir(), "rec");
     const r = await record(dir, 1, 3, { x: 0, y: 0, width: 200, height: 100 }, false);
     expect(r).toEqual({ dir, frames: 3 });
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     const files = readdirSync(dir).sort();
     expect(files).toEqual(["frame-0001.png", "frame-0002.png", "frame-0003.png"]);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     const png = readFileSync(path.join(dir, files[0]!));
     expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([200, 100]);
   });
@@ -263,6 +266,7 @@ describe.skipIf(!haveWm)("screen recording", () => {
     await withEnv({ PATH: bin }, async () => {
       const r = await record(dir, 1, 2, { x: 0, y: 0, width: 50, height: 50 }, true);
       expect(r.video).toBe(path.join(dir, "recording.mp4"));
+      // eslint-disable-next-line security/detect-non-literal-fs-filename
       expect(readFileSync(r.video as string, "utf8")).toContain("-framerate 2");
     });
     const bad = tmpDir();
@@ -281,6 +285,7 @@ describe.skipIf(!haveWm)("screen recording", () => {
     const dir = path.join(tmpDir(), "tool");
     const out = await callTool(vision.recordTool, { out_dir: dir, duration_seconds: 1, fps: 2, video: false, x: 0, y: 0, width: 40, height: 40 });
     expect(out).toBe(`recorded 2 frames to ${dir}`);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(existsSync(path.join(dir, "frame-0002.png"))).toBe(true);
     await withEnv({ PATH: tmpDir() }, async () => {
       expect(await callTool(vision.recordTool, { out_dir: path.join(tmpDir(), "t2"), duration_seconds: 1, fps: 1, x: 0, y: 0, width: 40, height: 40 })).toContain("ffmpeg not found");

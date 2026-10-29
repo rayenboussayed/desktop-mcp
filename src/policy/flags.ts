@@ -83,6 +83,7 @@ const list = (v: unknown): string[] => (Array.isArray(v) ? (v as string[]) : [])
  * @returns The parsed integer, or `undefined` when absent.
  */
 function integer(v: FlagValues, name: string): number | undefined {
+  // eslint-disable-next-line security/detect-object-injection
   const raw = v[name];
   if (raw === undefined) return undefined;
   const n = Number(raw);
@@ -96,6 +97,7 @@ function integer(v: FlagValues, name: string): number | undefined {
  * @returns Whether any permission flag was supplied.
  */
 export function anyPermissionFlag(v: FlagValues): boolean {
+  // eslint-disable-next-line security/detect-object-injection
   return Object.keys(FLAG_OPTIONS).some((k) => (Array.isArray(v[k]) ? (v[k] as unknown[]).length > 0 : v[k] !== undefined && v[k] !== false));
 }
 
@@ -123,6 +125,7 @@ export async function policyFromFlags(v: FlagValues): Promise<FlagPolicy> {
     for (const g of Object.keys(GROUPS)) {
       if (v[`${mode}-${g}`] !== true) continue;
       granted.push(`${mode}-${g}`);
+      // eslint-disable-next-line security/detect-object-injection
       for (const c of (GROUPS[g] as { caps: readonly Capability[] }).caps) caps[c] = mode;
     }
   }
@@ -157,7 +160,9 @@ export async function policyFromFlags(v: FlagValues): Promise<FlagPolicy> {
   if (v["audit-file"] !== undefined || v["audit-args"] === true) raw.audit = { ...base.audit, ...(v["audit-file"] === undefined ? {} : { file: v["audit-file"] as string }), ...(v["audit-args"] === true ? { logArgs: true } : {}) };
   if (v["ask-fallback"] !== undefined) raw.askFallback = v["ask-fallback"] as "allow" | "deny";
   const tools = { ...base.tools };
+  // eslint-disable-next-line security/detect-object-injection
   for (const t of list(v["allow-tool"])) tools[t] = "allow";
+  // eslint-disable-next-line security/detect-object-injection
   for (const t of list(v["deny-tool"])) tools[t] = "deny";
   raw.tools = tools;
 

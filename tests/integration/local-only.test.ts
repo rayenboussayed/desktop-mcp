@@ -11,6 +11,7 @@ import { describe, expect, it, afterAll } from "vitest";
 import { hasBinary, tmpDir } from "../helpers.js";
 import { haveWm, haveXterm, openWindow, stopAll } from "../x.js";
 
+// eslint-disable-next-line security/detect-non-literal-fs-filename
 const walk = (dir: string): string[] => readdirSync(dir).flatMap((n) => { const p = path.join(dir, n); return statSync(p).isDirectory() ? walk(p) : p.endsWith(".ts") ? [p] : []; });
 const SRC = walk("src").filter((f) => !f.includes(`${path.sep}bin${path.sep}`));
 // files that are SUPPOSED to touch the network, and why
@@ -25,12 +26,14 @@ describe("static guard: no hidden network or cloud dependencies", () => {
     expect(SRC.length).toBeGreaterThan(30);
     for (const file of SRC) {
       if (NETWORK_ALLOWED.has(file)) continue;
+      // eslint-disable-next-line security/detect-non-literal-fs-filename
       const code = readFileSync(file, "utf8").split("\n").filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join("\n");
       for (const [what, re] of forbidden) expect(re.test(code), `${file} must not use ${what}`).toBe(false);
     }
   });
   it("the MCP server and the plugins never import the agent", () => {
     for (const file of SRC.filter((f) => f !== path.join("src", "agent.ts") && f !== path.join("src", "cli.ts") && f !== path.join("src", "index.ts"))) {
+      // eslint-disable-next-line security/detect-non-literal-fs-filename
       expect(/from "\.\.?\/agent\.js"/.test(readFileSync(file, "utf8")), file).toBe(false);
     }
   });
@@ -59,6 +62,7 @@ describe.skipIf(!canIsolate || !haveWm || !haveXterm || !hasBinary("xclip"))("ev
     const dir = tmpDir();
     const script = path.join(dir, "offline.mjs");
     const sdk = path.resolve("node_modules/@modelcontextprotocol/sdk/dist/esm");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(script, `
 import { Client } from "${sdk}/client/index.js";
 import { StdioClientTransport } from "${sdk}/client/stdio.js";
@@ -93,6 +97,7 @@ console.log("RESULT " + JSON.stringify(out));
     const line = r.stdout.split("\n").find((l) => l.startsWith("RESULT "));
     expect(line, r.stderr.slice(-500)).toBeDefined();
     const o = JSON.parse((line as string).slice(7)) as { networkOff: boolean } & Record<string, { err: boolean; text: string }>;
+    // eslint-disable-next-line security/detect-object-injection
     const r_ = (k: string): { err: boolean; text: string } => o[k] as { err: boolean; text: string };
     expect(o.networkOff).toBe(true); // the sandbox really had no network
     expect(r_("system").text).toContain("CPU cores");

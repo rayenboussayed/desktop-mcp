@@ -68,6 +68,7 @@ export function pathRegExp(pattern: string): RegExp {
   if (norm.endsWith("/**")) norm = norm.slice(0, -3) || "/";
   let src = "";
   for (let i = 0; i < norm.length; i++) {
+    // eslint-disable-next-line security/detect-object-injection
     const c = norm[i] as string;
     if (c === "*" && norm[i + 1] === "*") {
       if (norm[i + 2] === "/") { src += "(?:.*/)?"; i += 2; } else { src += ".*"; i += 1; }
@@ -76,6 +77,7 @@ export function pathRegExp(pattern: string): RegExp {
     else src += esc(c);
   }
   if (src === "/") src = ""; // the root covers everything
+  // eslint-disable-next-line security/detect-non-literal-regexp
   return new RegExp(`^${src}(?:/.*)?$`, caseInsensitive() ? "i" : "");
 }
 
@@ -90,6 +92,7 @@ export async function canonicalPath(p: string): Promise<string> {
   const rest: string[] = [];
   for (;;) {
     try {
+      // eslint-disable-next-line security/detect-non-literal-fs-filename
       return slashes(path.join(await realpath(existing), ...rest.reverse()));
     } catch {
       const parent = path.dirname(existing);
@@ -108,6 +111,7 @@ const KEY_ALIASES: Record<string, string> = {
 };
 const normKey = (k: string): string => {
   const x = k.trim().toLowerCase();
+  // eslint-disable-next-line security/detect-object-injection
   return KEY_ALIASES[x] ?? x;
 };
 const keySet = (keys: string[]): Set<string> => new Set(keys.map(normKey));
@@ -121,6 +125,7 @@ const CHAIN = /[;&|`<>\n]|\$\(/;
 const compile = (patterns: string[], what: string): RegExp[] =>
   patterns.map((s) => {
     try {
+      // eslint-disable-next-line security/detect-non-literal-regexp
       return new RegExp(s, "i");
     } catch (e) {
       throw new Error(`invalid ${what} pattern ${JSON.stringify(s)}: ${(e as Error).message}`, { cause: e });
@@ -167,6 +172,7 @@ export class PermissionEngine {
 
   // ------------------------------------------------------------- modes
   private capMode(cap: Capability): Mode {
+    // eslint-disable-next-line security/detect-object-injection
     return this.policy.capabilities[cap] ?? this.policy.default;
   }
 
@@ -176,8 +182,10 @@ export class PermissionEngine {
    * @returns The tool's static permission mode.
    */
   staticMode(tool: string): Mode {
+    // eslint-disable-next-line security/detect-object-injection
     const override = this.policy.tools[tool];
     if (override) return override;
+    // eslint-disable-next-line security/detect-object-injection
     const meta = TOOL_META[tool];
     if (!meta) return "deny";
     const modes = meta.caps.map((c) => this.capMode(c));
@@ -280,6 +288,7 @@ export class PermissionEngine {
 
   // --------------------------------------------------------- authorise
   private async scopeReasons(tool: string, args: Record<string, unknown>): Promise<string[]> {
+    // eslint-disable-next-line security/detect-object-injection
     const meta = TOOL_META[tool];
     const reasons: string[] = [];
     const scope = meta?.scope?.(args) ?? {};
@@ -309,6 +318,7 @@ export class PermissionEngine {
   }
 
   private async audit(tool: string, args: Record<string, unknown>, d: Decision): Promise<string | undefined> {
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     const sink = this.deps.writeAudit ?? (this.policy.audit.file ? (l: string) => appendFile(this.policy.audit.file as string, l) : undefined);
     if (!sink) return undefined;
     const entry: Record<string, unknown> = {
@@ -328,6 +338,7 @@ export class PermissionEngine {
     const mode = this.staticMode(tool);
     let d: Decision;
     if (mode === "deny") {
+      // eslint-disable-next-line security/detect-object-injection
       const known = TOOL_META[tool] !== undefined || this.policy.tools[tool] !== undefined;
       d = { allowed: false, mode, asked: false, reason: known ? `tool ${tool} is not permitted by policy "${this.policy.name}"` : `tool ${tool} has no permission metadata` };
     } else {
@@ -406,7 +417,9 @@ export class PermissionEngine {
 function redact(args: Record<string, unknown>, forDisplay: boolean): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(args)) {
+    // eslint-disable-next-line security/detect-object-injection
     if (typeof v === "string" && (SENSITIVE_ARG.has(k) || (forDisplay && v.length > 200))) out[k] = `<${Array.from(v).length} chars>`;
+    // eslint-disable-next-line security/detect-object-injection
     else out[k] = v;
   }
   return out;

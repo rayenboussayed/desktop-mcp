@@ -26,9 +26,12 @@ afterEach(() => {
  * @returns The executable script path.
  */
 export function makeBin(dir: string, name: string, body: string): string {
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   mkdirSync(dir, { recursive: true });
   const p = path.join(dir, name);
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   writeFileSync(p, `#!/bin/sh\n${body}\n`);
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   chmodSync(p, 0o755);
   return p;
 }
@@ -41,10 +44,13 @@ export function makeBin(dir: string, name: string, body: string): string {
  */
 export function withEnv<T>(vars: Record<string, string | undefined>, fn: () => T): T {
   const saved: Record<string, string | undefined> = {};
+  // eslint-disable-next-line security/detect-object-injection
   for (const k of Object.keys(vars)) saved[k] = process.env[k];
   const apply = (v: Record<string, string | undefined>): void => {
     for (const [k, val] of Object.entries(v)) {
+      // eslint-disable-next-line security/detect-object-injection
       if (val === undefined) delete process.env[k];
+      // eslint-disable-next-line security/detect-object-injection
       else process.env[k] = val;
     }
   };

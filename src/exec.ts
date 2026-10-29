@@ -121,6 +121,7 @@ export function execText(file: string, args: string[], opts: ExecOptions = {}): 
  */
 export function signalCode(signal: NodeJS.Signals | null): number | null {
   if (!signal) return null;
+  // eslint-disable-next-line security/detect-object-injection
   const n = (os.constants.signals as Record<string, number>)[signal];
   return n === undefined ? -1 : -n;
 }

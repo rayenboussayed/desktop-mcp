@@ -11,6 +11,7 @@ import { tmpDir } from "../helpers.js";
 
 const parse = (argv: string[]): Record<string, unknown> => parseArgs({ args: argv, options: FLAG_OPTIONS }).values as Record<string, unknown>;
 const policy = async (...argv: string[]) => (await policyFromFlags(parse(argv))).policy;
+// eslint-disable-next-line security/detect-object-injection
 const allowed = (p: { capabilities: Partial<Record<Capability, string>> }, mode = "allow"): Capability[] => CAPABILITIES.filter((c) => p.capabilities[c] === mode);
 
 describe("deny by default", () => {
@@ -29,10 +30,12 @@ describe("deny by default", () => {
 describe("every group grants exactly its documented capabilities", () => {
   it.each(Object.keys(GROUPS))("--allow-%s", async (g) => {
     const p = await policy(`--allow-${g}`);
+    // eslint-disable-next-line security/detect-object-injection
     expect(allowed(p).sort()).toEqual([...(GROUPS[g]?.caps ?? [])].sort());
     expect(p.name).toBe("flags");
   });
   it.each(Object.keys(GROUPS))("--ask-%s", async (g) => {
+    // eslint-disable-next-line security/detect-object-injection
     expect(allowed(await policy(`--ask-${g}`), "ask").sort()).toEqual([...(GROUPS[g]?.caps ?? [])].sort());
   });
   it("--allow-all covers every capability", async () => {
@@ -78,6 +81,7 @@ describe("layering on a base", () => {
   });
   it("--config and --policy are the same thing; legacy --safe / --read-only are bases", async () => {
     const f = path.join(tmpDir(), "p.json");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(f, '{"name":"mine","default":"deny","capabilities":{"fs.read":"allow"}}');
     for (const flag of ["--config", "--policy"]) {
       const p = await policy(flag, f, "--allow-clipboard");

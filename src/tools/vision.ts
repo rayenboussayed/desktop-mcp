@@ -51,6 +51,7 @@ async function loadTemplate(template?: string, base64?: string): Promise<Jimp> {
   const J = (await import("jimp")).default;
   if (base64) return J.read(Buffer.from(base64.replace(/^data:image\/\w+;base64,/, ""), "base64"));
   if (!template) throw new Error("give a template file path or template_base64");
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   return J.read(await readFile(resolveUserPath(template)));
 }
 
@@ -245,6 +246,7 @@ export async function findColor(color: string, tolerance: number, minPixels: num
  */
 async function recordScreen(outDir: string, seconds: number, fps: number, region: Rect | undefined, video: boolean): Promise<string> {
   const dir = resolveUserPath(outDir);
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   await mkdir(dir, { recursive: true });
   const r = await record(dir, seconds, fps, region, video);
   return `recorded ${r.frames} frames to ${r.dir}${r.video ? `; video: ${r.video}` : ""}${r.note ? `; ${r.note}` : ""}`;

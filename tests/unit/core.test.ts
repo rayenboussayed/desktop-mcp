@@ -33,8 +33,11 @@ describe("platform", () => {
   it("which finds executables only", () => {
     const bin = tmpDir();
     makeBin(bin, "mytool", "true");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(path.join(bin, "notexec"), "x");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     chmodSync(path.join(bin, "notexec"), 0o644);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     mkdirSync(path.join(bin, "adir"));
     withEnv({ PATH: bin }, () => {
       expect(which("mytool")).toBe(path.join(bin, "mytool"));
@@ -47,6 +50,7 @@ describe("platform", () => {
 
   it("which honours PATHEXT on windows", () => {
     const bin = tmpDir();
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(path.join(bin, "tool.EXE"), "x");
     withPlatform("win32", () =>
       withEnv({ PATH: bin, PATHEXT: ".EXE;.CMD" }, () => expect(which("tool")).toBe(path.join(bin, "tool.EXE"))));
@@ -131,6 +135,7 @@ describe("file tools", () => {
     expect(await readFile(path.join(d, "nope"))).toContain("[error] not a file");
     expect(await listDir(path.join(d, "nope"))).toContain("[error] not a directory");
     expect(await listDir(d)).toContain("big.txt");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     mkdirSync(path.join(d, "empty"));
     expect(await listDir(path.join(d, "empty"))).toBe("[empty]");
     expect(await listDir(d)).toContain("dir \t\tempty");

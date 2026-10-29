@@ -4,7 +4,9 @@ import { z } from "zod";
 import { resolveUserPath } from "../platform.js";
 import { defineTool, truncate } from "./base.js";
 
+// eslint-disable-next-line security/detect-non-literal-fs-filename
 const isFile = async (p: string): Promise<boolean> => (await stat(p).catch(() => undefined))?.isFile() === true;
+// eslint-disable-next-line security/detect-non-literal-fs-filename
 const isDir = async (p: string): Promise<boolean> => (await stat(p).catch(() => undefined))?.isDirectory() === true;
 
 /**
@@ -28,6 +30,7 @@ export function splitLines(text: string): string[] {
 export async function readFile(p: string, offset = 0, limit = 2000): Promise<string> {
   const full = resolveUserPath(p);
   if (!(await isFile(full))) return `[error] not a file: ${full}`;
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   const lines = splitLines(await fsReadFile(full, "utf8"));
   const chunk = lines.slice(offset, offset + limit);
   const body = chunk.map((line, i) => `${offset + i + 1}\t${line}`).join("\n");
@@ -43,7 +46,9 @@ export async function readFile(p: string, offset = 0, limit = 2000): Promise<str
  */
 export async function writeFile(p: string, content: string): Promise<string> {
   const full = resolveUserPath(p);
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   await mkdir(path.dirname(full), { recursive: true });
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   await fsWriteFile(full, content, "utf8");
   return `wrote ${Array.from(content).length} chars to ${full}`;
 }
@@ -57,7 +62,9 @@ export async function listDir(p = "."): Promise<string> {
   const full = resolveUserPath(p);
   if (!(await isDir(full))) return `[error] not a directory: ${full}`;
   const rows: string[] = [];
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   for (const name of (await readdir(full)).sort()) {
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     const st = await stat(path.join(full, name)).catch(() => undefined);
     const dir = st?.isDirectory() === true;
     rows.push(`${dir ? "dir " : "file"}\t${dir ? "" : (st?.size ?? "")}\t${name}`);

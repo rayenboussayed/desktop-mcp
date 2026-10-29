@@ -47,6 +47,7 @@ const CASES: Record<string, [Record<string, unknown>, Record<string, unknown>]> 
 describe("capability metadata", () => {
   it("pins the scope every tool reports to the permission engine", () => {
     for (const [tool, [args, expected]] of Object.entries(CASES)) {
+      // eslint-disable-next-line security/detect-object-injection
       expect(TOOL_META[tool]?.scope?.(args), tool).toEqual(expected);
     }
     // every tool with a scope extractor is covered by a case
@@ -77,6 +78,7 @@ describe("capability metadata", () => {
     const inputTools = Object.entries(TOOL_META).filter(([, m]) => m.input).map(([n]) => n).sort();
     expect(inputTools).toEqual(["click", "click_image", "click_text", "clipboard_copy", "clipboard_paste", "key_down", "key_up", "mouse_drag", "mouse_move_relative", "mouse_press", "mouse_release", "move_mouse", "press_key", "scroll", "type_text"]);
     // everything that can send input needs an input capability
+    // eslint-disable-next-line security/detect-object-injection
     for (const n of inputTools) expect(TOOL_META[n]!.caps.some((c) => c.startsWith("input.")), n).toBe(true);
   });
 });

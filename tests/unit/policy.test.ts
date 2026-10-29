@@ -43,6 +43,7 @@ describe("schema and loader", () => {
   it("resolvePolicy: file, preset, legacy flags, overrides, errors", async () => {
     const d = tmpDir();
     const f = path.join(d, "p.json");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(f, '{"name":"mine","default":"allow","tools":{"run_command":"deny"}}');
     expect((await resolvePolicy({ file: f })).name).toBe("mine");
     expect((await resolvePolicy({ preset: "standard" })).name).toBe("standard");
@@ -109,9 +110,13 @@ describe("file scope (real files, real symlinks)", () => {
   function sandbox(): { root: string; inside: string; outside: string } {
     const root = path.join(tmpDir(), "proj");
     const outside = path.join(tmpDir(), "secret");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     mkdirSync(path.join(root, "src"), { recursive: true });
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     mkdirSync(outside, { recursive: true });
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(path.join(root, "src/a.txt"), "a");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(path.join(outside, "key.txt"), "k");
     return { root, inside: path.join(root, "src/a.txt"), outside: path.join(outside, "key.txt") };
   }
@@ -130,6 +135,7 @@ describe("file scope (real files, real symlinks)", () => {
 
   it("a symlink inside the allowed tree cannot reach outside it", async () => {
     const { root, outside } = sandbox();
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     symlinkSync(path.dirname(outside), path.join(root, "escape"));
     const e = engine({ default: "allow", paths: { allow: [root] } });
     expect(await reason(e, "read_file", { path: path.join(root, "escape/key.txt") })).toContain("outside the allowed paths");
@@ -138,14 +144,18 @@ describe("file scope (real files, real symlinks)", () => {
 
   it("deny beats allow, matches lexical and real paths, and supports globs", async () => {
     const { root, inside } = sandbox();
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     mkdirSync(path.join(root, ".git"));
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(path.join(root, ".git/config"), "x");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(path.join(root, "src/.env"), "S=1");
     const e = engine({ default: "allow", paths: { allow: [root], deny: [`${root}/.git`, `${root}/**/.env`] } });
     expect(await reason(e, "read_file", { path: path.join(root, ".git/config") })).toContain("denied by policy");
     expect(await allowed(e, "read_file", { path: path.join(root, "src/.env") })).toBe(false);
     expect(await allowed(e, "read_file", { path: inside })).toBe(true);
     const link = path.join(root, "gitlink");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     symlinkSync(path.join(root, ".git"), link);
     expect(await allowed(e, "read_file", { path: path.join(link, "config") })).toBe(false); // denied via the REAL path
   });
@@ -193,9 +203,12 @@ describe("file scope (real files, real symlinks)", () => {
     expect(pathRegExp("/a/**x").test("/a/zzx")).toBe(true);
     expect(pathRegExp("/a.b+c").test("/a.b+c")).toBe(true);
     expect(pathRegExp("/a.b").test("/aXb")).toBe(false);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     symlinkSync(d, path.join(tmpDir(), "ln-unused")); // (just exercising symlink creation on temp dirs)
     const real = path.join(d, "real");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     mkdirSync(real);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     symlinkSync(real, path.join(d, "ln"));
     expect(await canonicalPath(path.join(d, "ln/missing/deeper"))).toBe((await canonicalPath(real)) + "/missing/deeper");
     expect(await canonicalPath("/")).toBe("/");
@@ -377,11 +390,13 @@ describe("audit log", () => {
     const e = engine({ name: "t", default: "deny", capabilities: { "fs.read": "allow" }, audit: { file: f } }, { now: () => Date.UTC(2026, 0, 2) });
     await e.authorize("read_file", { path: "/etc/hostname" });
     await e.authorize("write_file", { path: "/tmp/x", content: "TOPSECRET" });
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     const lines = readFileSync(f, "utf8").trim().split("\n").map((l) => JSON.parse(l));
     expect(lines).toHaveLength(2);
     expect(lines[0]).toMatchObject({ ts: "2026-01-02T00:00:00.000Z", policy: "t", tool: "read_file", allowed: true, mode: "allow", asked: false, args: ["path"] });
     expect(lines[1]).toMatchObject({ tool: "write_file", allowed: false });
     expect(lines[1].reason).toContain("not permitted");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(readFileSync(f, "utf8")).not.toContain("TOPSECRET");
   });
   it("logArgs records values but still never typed text or file contents", async () => {
@@ -389,6 +404,7 @@ describe("audit log", () => {
     const e = engine({ default: "allow", audit: { file: f, logArgs: true } });
     await e.authorize("type_text", { text: "hunter2" });
     await e.authorize("write_file", { path: "/tmp/p", content: "BODY" });
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     const text = readFileSync(f, "utf8");
     expect(text).toContain('"path":"/tmp/p"');
     expect(text).toContain("<7 chars>");
@@ -403,6 +419,7 @@ describe("audit log", () => {
     expect(d.reason).toContain("audit log unavailable");
     const custom = engine({ default: "allow" }, { writeAudit: async () => { throw new Error("disk full"); } });
     expect(await reason(custom, "get_env")).toContain("disk full");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     chmodSync(dir, 0o755);
   });
 });

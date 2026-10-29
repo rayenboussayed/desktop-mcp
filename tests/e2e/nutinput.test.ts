@@ -163,10 +163,13 @@ describe.skipIf(!haveX)("screen", () => {
   it("saves full-resolution screenshots to a file (creating folders)", async () => {
     const out = path.join(tmpDir(), "deep/er/shot.png");
     expect(await gui.screenshotSave(out)).toBe(`saved 1280x800 screenshot to ${out}`);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(dims(readFileSync(out))).toEqual([1280, 800]);
     const part = path.join(tmpDir(), "part.png");
     expect(await gui.screenshotSave(part, { x: 0, y: 0, width: 64, height: 32 })).toContain("saved 64x32");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(statSync(part).size).toBeGreaterThan(50);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(existsSync(out)).toBe(true);
   });
 

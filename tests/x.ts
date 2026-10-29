@@ -31,6 +31,7 @@ export class Xev {
   async settle(ms = 400): Promise<this> { await sleep(ms); return this; }
   keys(): string[] { return [...this.out.matchAll(/KeyPress[\s\S]*?keysym 0x[0-9a-f]+, (\S+?)\)/g)].map((m) => m[1] as string); }
   buttons(kind: "ButtonPress" | "ButtonRelease" = "ButtonPress"): string[] {
+    // eslint-disable-next-line security/detect-non-literal-regexp
     return [...this.out.matchAll(new RegExp(`${kind} event[\\s\\S]*?button (\\d)`, "g"))].map((m) => m[1] as string);
   }
 

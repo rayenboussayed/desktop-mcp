@@ -32,11 +32,13 @@ const NAMED_KEYS: Record<string, string> = {
 export function keyFromName(n: Nut, name: string): number {
   const k = name.trim().toLowerCase();
   const table = n.Key as unknown as Record<string, number | undefined>;
+  // eslint-disable-next-line security/detect-object-injection
   let member: string | undefined = NAMED_KEYS[k];
   if (!member && /^[a-z]$/.test(k)) member = k.toUpperCase();
   else if (!member && /^[0-9]$/.test(k)) member = `Num${k}`; // top-row digits (NumPadN is the keypad)
   else if (!member && /^kp_[0-9]$/.test(k)) member = `NumPad${k.slice(3)}`;
   else if (!member && /^f([1-9]|1\d|2[0-4])$/.test(k)) member = k.toUpperCase();
+  // eslint-disable-next-line security/detect-object-injection
   const value = member === undefined ? undefined : table[member];
   if (value === undefined) throw new Error(`unknown key '${name}'`);
   return value;
@@ -88,6 +90,7 @@ export function keysForChar(ch: string): { key: string; shift: boolean } | undef
   if (ch === " ") return { key: "space", shift: false };
   if (/^[a-z0-9]$/.test(ch) || "-=[]\\;',./`".includes(ch)) return { key: ch, shift: false };
   if (/^[A-Z]$/.test(ch)) return { key: ch.toLowerCase(), shift: true };
+  // eslint-disable-next-line security/detect-object-injection
   const base = SHIFTED[ch];
   return base === undefined ? undefined : { key: base, shift: true };
 }

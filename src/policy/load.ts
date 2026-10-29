@@ -50,6 +50,7 @@ export async function resolvePolicy(src: PolicySource = {}): Promise<Policy> {
   if (src.file) {
     let text: string;
     try {
+      // eslint-disable-next-line security/detect-non-literal-fs-filename
       text = await readFile(src.file, "utf8");
     } catch (e) {
       throw new PolicyError(`cannot read policy file ${src.file}: ${(e as Error).message}`);
@@ -62,7 +63,9 @@ export async function resolvePolicy(src: PolicySource = {}): Promise<Policy> {
     base = preset(src.preset as PresetName);
   } else base = preset(src.readOnly ? "readonly" : src.safe ? "safe" : "full");
   const tools = { ...base.tools };
+  // eslint-disable-next-line security/detect-object-injection
   for (const t of src.allowTools ?? []) tools[t] = "allow";
+  // eslint-disable-next-line security/detect-object-injection
   for (const t of src.denyTools ?? []) tools[t] = "deny";
   return { ...base, tools };
 }

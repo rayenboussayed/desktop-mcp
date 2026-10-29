@@ -101,6 +101,7 @@ describe("feature flags choose the tools the AI sees", () => {
     expect(out[0]).toContain("npx desktop-mcp@latest --allow-all");
     for (const f of ["--allow-all", "--allow-mouse", "--allow-clipboard", "--allow-keyboard", "--transport", "--no-search", "--policy-show", "--region", "--preset"]) expect(out[0], f).toContain(f);
     expect(out[0]).toContain("only web_search/fetch_url touch the network");
+    // eslint-disable-next-line security/detect-non-literal-regexp
     expect(out.at(-1)).toMatch(new RegExp(`^desktop-mcp ${VERSION.replace(/\./g, "\\.")} on OS: `));
   });
 
@@ -183,6 +184,7 @@ describe("scoping flags are enforced", () => {
     await r.client.callTool({ name: "get_env", arguments: { name: "PATH" } });
     await r.client.callTool({ name: "kill_process", arguments: { pid: 1 } }).catch(() => undefined);
     await r.close();
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     const lines = readFileSync(log, "utf8").trim().split("\n").map((l) => JSON.parse(l));
     expect(lines[0]).toMatchObject({ policy: "flags", tool: "get_env", allowed: true, args: { name: "PATH" } });
   });

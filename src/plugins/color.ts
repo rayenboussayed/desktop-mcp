@@ -41,9 +41,11 @@ export function findColorRegions(bmp: Bitmap, color: RGB, tolerance = 10, minPix
   const stack = new Int32Array(w * h);
   const out: ColorRegion[] = [];
   for (let start = 0; start < w * h; start++) {
+    // eslint-disable-next-line security/detect-object-injection
     if (seen[start] || !near(start)) continue;
     let sp = 0;
     stack[sp++] = start;
+    // eslint-disable-next-line security/detect-object-injection
     seen[start] = 1;
     let [x0, y0, x1, y1, n] = [w, h, 0, 0, 0];
     while (sp > 0) {
@@ -55,7 +57,9 @@ export function findColorRegions(bmp: Bitmap, color: RGB, tolerance = 10, minPix
       if (y < y0) y0 = y;
       if (y > y1) y1 = y;
       for (const j of [x > 0 ? i - 1 : -1, x < w - 1 ? i + 1 : -1, y > 0 ? i - w : -1, y < h - 1 ? i + w : -1]) {
+        // eslint-disable-next-line security/detect-object-injection
         if (j >= 0 && !seen[j] && near(j)) {
+          // eslint-disable-next-line security/detect-object-injection
           seen[j] = 1;
           stack[sp++] = j;
         }

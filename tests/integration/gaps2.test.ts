@@ -34,6 +34,7 @@ describe("small leftovers", () => {
     makeBin(bin, "xclip", `case "$*" in *-o*) printf shim-clip;; *) read -r line; echo "$line" >> ${log};; esac`);
     makeBin(bin, "xdg-open", `echo "$@" >> ${log}.open`);
     const d = tmpDir();
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     write(path.join(d, "a.txt"), "x");
     await withEnv({ PATH: bin }, async () => {
       expect(await callTool(sys.clipboardGetTool, {})).toBe("shim-clip");
@@ -42,12 +43,14 @@ describe("small leftovers", () => {
     });
     expect(await callTool(sys.makeDirTool, { path: path.join(d, "m/n") })).toContain("created");
     expect(await callTool(sys.copyPathTool, { src: path.join(d, "a.txt"), dst: path.join(d, "b.txt") })).toContain("copied");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     expect(existsSync(path.join(d, "b.txt"))).toBe(true);
     await sleep(200);
   });
 
   it("list_dir/find_files order entries by bytes (uppercase first)", async () => {
     const d = tmpDir();
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     for (const n of ["b", "B", "a", "A"]) write(path.join(d, n), "");
     expect((await sys.findFiles("*", d)).split("\n").map((p) => path.basename(p))).toEqual(["A", "B", "a", "b"]);
   });
@@ -90,12 +93,14 @@ describe.skipIf(!haveWm || !haveXterm)("providers called directly, and the visio
     expect((await finder.findMatches({ haystack: hay, needle })).length).toBeGreaterThanOrEqual(1);
     const noise = new Jimp(40, 40, 0);
     noise.scan(0, 0, 40, 40, (x: number, y: number, idx: number) => {
+      // eslint-disable-next-line security/detect-object-injection
       noise.bitmap.data[idx] = (x * 91 + y * 17) % 256;
       noise.bitmap.data[idx + 1] = (x * 31) % 256;
       noise.bitmap.data[idx + 2] = (y * 57) % 256;
       noise.bitmap.data[idx + 3] = 255;
     });
     const nf = path.join(dir, "noise.png");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     write(nf, await noise.getBufferAsync("image/png"));
     await expect(finder.findMatch({ haystack: hay, needle: await n.loadImage(nf) })).rejects.toThrow(/no match for the image at confidence 0.99/);
     await expect(finder.findMatch({ haystack: hay, needle: await n.loadImage(nf), confidence: 0.97 })).rejects.toThrow(/confidence 0.97/);
@@ -138,6 +143,7 @@ describe.skipIf(!haveWm || !haveXterm)("the server's default active-window probe
     await openWindow("file-scope", { geometry: "30x4+100+400" });
     await openWindow("file-other", { geometry: "30x4+500+400" });
     const f = path.join(tmpDir(), "policy.json");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     writeFileSync(f, JSON.stringify({ name: "from-file", default: "allow", gui: { windows: ["^file-scope$"] } }));
     const server = await buildServer({ policy: { file: f }, gui: true });
     const [a, bb] = InMemoryTransport.createLinkedPair();

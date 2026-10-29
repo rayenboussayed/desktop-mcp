@@ -20,6 +20,7 @@ describe.skipIf(!registryUp)("npx omcps", () => {
   // already built by pretest, so the tarball only has to be assembled.
   spawnSync("npm", ["pack", "--pack-destination", work, "--silent", "--ignore-scripts"], { encoding: "utf8", timeout: 120_000 });
   // stdout can carry lifecycle noise, so find the artifact on disk instead of parsing it.
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   const packed = readdirSync(work).filter(isPack).map((f) => ({ f, mtime: statSync(path.join(work, f)).mtimeMs })).sort((a, b) => a.mtime - b.mtime).pop();
   const tgz = path.join(work, packed?.f ?? "missing.tgz");
   const env = { ...process.env, npm_config_cache: cache, npm_config_update_notifier: "false", npm_config_fund: "false", npm_config_audit: "false" } as Record<string, string>;

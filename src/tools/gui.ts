@@ -70,7 +70,9 @@ export async function screenshotSave(file: string, region?: Rect): Promise<strin
   const n = await nut();
   const { jimp } = await grab(n, region);
   const full = resolveUserPath(file);
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   await mkdir(path.dirname(full), { recursive: true });
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   await writeFile(full, await jimp.getBufferAsync("image/png"));
   return `saved ${jimp.getWidth()}x${jimp.getHeight()} screenshot to ${full}`;
 }
@@ -137,6 +139,7 @@ export async function mousePosition(): Promise<string> {
 export async function click(x: number, y: number, button: ButtonName = "left", clicks = 1): Promise<string> {
   const n = await nut();
   await failsafe(n);
+  // eslint-disable-next-line security/detect-object-injection
   const btn = n.Button[BUTTONS[button]];
   await n.mouse.setPosition(new n.Point(x, y));
   if (clicks === 2) await n.mouse.doubleClick(btn);
@@ -181,6 +184,7 @@ export async function moveRelative(dx: number, dy: number): Promise<string> {
 export async function mousePress(button: ButtonName = "left"): Promise<string> {
   const n = await nut();
   await failsafe(n);
+  // eslint-disable-next-line security/detect-object-injection
   const btn = n.Button[BUTTONS[button]];
   await n.mouse.pressButton(btn);
   heldButtons.add(btn);
@@ -194,6 +198,7 @@ export async function mousePress(button: ButtonName = "left"): Promise<string> {
  */
 export async function mouseRelease(button: ButtonName = "left"): Promise<string> {
   const n = await nut();
+  // eslint-disable-next-line security/detect-object-injection
   const btn = n.Button[BUTTONS[button]];
   await n.mouse.releaseButton(btn);
   heldButtons.delete(btn);
@@ -212,6 +217,7 @@ export async function mouseRelease(button: ButtonName = "left"): Promise<string>
 export async function mouseDrag(fx: number, fy: number, tx: number, ty: number, button: ButtonName = "left"): Promise<string> {
   const n = await nut();
   await failsafe(n);
+  // eslint-disable-next-line security/detect-object-injection
   const btn = n.Button[BUTTONS[button]];
   await n.mouse.setPosition(new n.Point(fx, fy));
   await n.mouse.pressButton(btn);

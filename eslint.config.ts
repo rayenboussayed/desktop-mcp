@@ -15,6 +15,9 @@ import deslint from "@deslint/eslint-plugin";
 import depend from "eslint-plugin-depend";
 import prettier from "eslint-config-prettier/flat";
 import stylistic from "@stylistic/eslint-plugin";
+import security from "eslint-plugin-security";
+import regexp from "eslint-plugin-regexp";
+import typescriptEslintParser from "@typescript-eslint/parser";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 const JS_FILES = "**/*.{ts,mts,cts}";
@@ -31,13 +34,21 @@ export default defineConfig([
       sonarjs: sonarjs.configs.recommended,
       deslint: deslint.configs.recommended,
       depend,
+      regexp,
     },
     extends: ["js/recommended", "depend/flat/recommended"],
-    languageOptions: { globals: globals.node },
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.builtin,
+      },
+      parser: typescriptEslintParser,
+    },
   },
   tseslint.configs.recommended,
   deMoragn.configs.recommended,
   stylistic.configs.recommended,
+  security.configs.recommended,
   {
     files: [JS_FILES],
     ...jsdoc({ config: "flat/recommended" }),

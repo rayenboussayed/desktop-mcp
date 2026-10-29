@@ -370,6 +370,8 @@ describe("main() in-process", () => {
     expect(out[0]).toMatch(new RegExp(`^desktop-mcp ${VERSION.replace(/\./g, "\\.")} on OS: `));
     expect(await main(["--bogus"])).toBe(2);
     expect(await main(["--transport", "carrier-pigeon"])).toBe(2);
+    expect(await main(["--transport", "streamable-http", "--port", "70000"])).toBe(2);
+    expect(err.join("\n")).toContain("--port must be an integer");
     expect(await main(["--preset", "nonsense"])).toBe(2);
     expect(err.join("\n")).toContain("unknown preset 'nonsense'");
     const bad = path.join(tmpDir(), "p.json");

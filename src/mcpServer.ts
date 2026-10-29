@@ -343,6 +343,10 @@ export async function main(argv: string[] = process.argv.slice(2), io: MainIo = 
   if (hint) console.error("desktop-mcp: nothing is allowed yet. Add flags such as --allow-all, --allow-mouse --allow-keyboard --allow-screen, or run desktop-mcp --help.");
   if (transport === "streamable-http") {
     const port = Number.parseInt(values.port as string, 10);
+    if (!Number.isInteger(port) || port < 0 || port > 65535) {
+      console.error("desktop-mcp: --port must be an integer between 0 and 65535");
+      return 2;
+    }
     const http = await serveHttp(opts, values.host as string, port);
     io.signal?.addEventListener("abort", () => http.close());
     const actual = (http.address() as { port: number }).port;

@@ -61,6 +61,33 @@ describe("schema and loader", () => {
   });
 });
 
+describe("path matching and canonicalization", () => {
+  it("uses exact segment and descendant boundaries, not string prefixes", () => {
+    const exact = pathRegExp("/tmp/allowed");
+    expect(exact.test("/tmp/allowed")).toBe(true);
+    expect(exact.test("/tmp/allowed/src/file.txt")).toBe(true);
+    expect(exact.test("/tmp/allowed-not-a-prefix")).toBe(false);
+    expect(exact.test("/tmp/notallowed")).toBe(false);
+
+    const glob = pathRegExp("/tmp/allowed/**/*.env");
+    expect(glob.test("/tmp/allowed/.env")).toBe(true);
+    expect(glob.test("/tmp/allowed/a/b/.env")).toBe(true);
+    expect(glob.test("/tmp/allowed/src/.env.not")).toBe(false);
+  });
+
+  it("returns the real path for an existing symlinked ancestor", async () => {
+    const d = tmpDir();
+    const target = path.join(d, "target");
+    const link = path.join(d, "link");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    mkdirSync(target);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    symlinkSync(target, link);
+    expect(await canonicalPath(target)).toBe(target.replace(/\\/g, "/"));
+    expect(await canonicalPath(path.join(link, "new", "file"))).toBe(path.join(target, "new", "file").replace(/\\/g, "/"));
+  });
+});
+
 describe("tool metadata", () => {
   it("every tool the server can register has permission metadata, and vice versa", async () => {
     const { selectTools } = await import("../../src/mcpServer.js");

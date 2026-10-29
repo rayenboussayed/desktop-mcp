@@ -19,7 +19,10 @@ export async function pasteText(text: string, restore = true): Promise<void> {
   await sleep(120);
   await tapKeys([shortcutModifier(), "v"]); // terminals usually need ctrl+shift+v: ask for that via press_key instead
   await sleep(250); // let the target application read the clipboard first
-  if (!failed(previous)) await clipboardSet(previous);
+  if (!failed(previous)) {
+    await clipboardSet(previous);
+    await sleep(200); // give X11/Wayland ownership transfer time to settle before returning
+  }
 }
 
 /**

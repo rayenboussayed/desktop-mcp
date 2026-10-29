@@ -277,7 +277,7 @@ describe.skipIf(!haveX)("desktop control against a real X server", () => {
     expect(ev.keys()).toEqual(["a", "b", "space", "Control_L", "v", "space", "c", "d"]);
     // X11 selection ownership is asynchronous: xclip exits before its daemon serves the restored value, so poll.
     const restored = async (): Promise<string> => {
-      for (let i = 0; i < 40; i++) {
+      for (let i = 0; i < 80; i++) {
         const got = await sys.clipboardGet();
         if (got === "original clipboard") return got;
         await sleep(50);

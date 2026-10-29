@@ -77,8 +77,8 @@ export const readFileTool = defineTool({
   description: "Read a text file with line numbers.",
   shape: {
     path: z.string(),
-    offset: z.number().int().default(0),
-    limit: z.number().int().default(2000),
+    offset: z.number().int().nonnegative().default(0),
+    limit: z.number().int().positive().default(2000),
   },
   run: ({ path: p, offset, limit }) => readFile(p, offset, limit),
   readOnly: true,

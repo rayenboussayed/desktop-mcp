@@ -253,6 +253,16 @@ describe("file management", () => {
     await expect(sys.movePath(path.join(d, "nope"), path.join(d, "z"))).rejects.toThrow();
   });
 
+  it("refuses copy and move when the destination is inside the source", async () => {
+    const d = tmpDir();
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    mkdirSync(path.join(d, "src/deep"), { recursive: true });
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    writeFileSync(path.join(d, "src/deep/f.txt"), "x");
+    expect(await sys.copyPath(path.join(d, "src"), path.join(d, "src/inside"))).toContain("destination must not be inside the source");
+    expect(await sys.movePath(path.join(d, "src"), path.join(d, "src/inside"))).toContain("destination must not be inside the source");
+  });
+
   it("move_path falls back to copy+delete across filesystems", async () => {
     // /dev/shm is a different filesystem from the temp dir on most Linux hosts
     if (!existsSync("/dev/shm")) return;

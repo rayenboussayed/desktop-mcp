@@ -373,6 +373,10 @@ export async function makeDir(p: string): Promise<string> {
 export async function movePath(src: string, dst: string): Promise<string> {
   const s = resolveUserPath(src);
   const d = resolveUserPath(dst);
+  const rel = path.relative(s, d);
+  if (rel === "" || (!rel.startsWith(`..${path.sep}`) && rel !== "..")) {
+    return `[error] destination must not be inside the source (${s} -> ${d})`;
+  }
   try {
     // eslint-disable-next-line security/detect-non-literal-fs-filename
     await rename(s, d);
@@ -393,6 +397,10 @@ export async function movePath(src: string, dst: string): Promise<string> {
 export async function copyPath(src: string, dst: string): Promise<string> {
   const s = resolveUserPath(src);
   const d = resolveUserPath(dst);
+  const rel = path.relative(s, d);
+  if (rel === "" || (!rel.startsWith(`..${path.sep}`) && rel !== "..")) {
+    return `[error] destination must not be inside the source (${s} -> ${d})`;
+  }
   // eslint-disable-next-line security/detect-non-literal-fs-filename
   if ((await stat(s)).isDirectory()) await cp(s, d, { recursive: true, force: true });
   else {

@@ -32,6 +32,7 @@ class Xev {
     this.proc = spawn("xev", ["-geometry", "500x400+50+50"], { env: process.env });
     this.proc.stdout?.on("data", (d) => (this.out += d));
   }
+
   async ready(): Promise<void> { await sleep(700); }
   async settle(): Promise<string> { await sleep(400); return this.out; }
   keys(): string[] { return [...this.out.matchAll(/KeyPress[\s\S]*?keysym 0x[0-9a-f]+, (\S+?)\)/g)].map((m) => m[1] as string); }

@@ -19,6 +19,7 @@ class StreamTransport implements Transport {
       for (let m = this.buf.readMessage(); m; m = this.buf.readMessage()) this.onmessage?.(m);
     });
   }
+
   async send(m: JSONRPCMessage): Promise<void> { this.toServer.write(serializeMessage(m)); }
   async close(): Promise<void> { this.toServer.end(); this.onclose?.(); }
 }

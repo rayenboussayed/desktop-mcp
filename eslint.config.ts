@@ -13,6 +13,8 @@ import n from "eslint-plugin-n";
 import sonarjs from "eslint-plugin-sonarjs";
 import deslint from "@deslint/eslint-plugin";
 import depend from "eslint-plugin-depend";
+import prettier from "eslint-config-prettier/flat";
+import stylistic from "@stylistic/eslint-plugin";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 const JS_FILES = "**/*.{ts,mts,cts}";
@@ -35,6 +37,7 @@ export default defineConfig([
   },
   tseslint.configs.recommended,
   deMoragn.configs.recommended,
+  stylistic.configs.recommended,
   {
     files: [JS_FILES],
     ...jsdoc({ config: "flat/recommended" }),
@@ -71,4 +74,5 @@ export default defineConfig([
     language: "markdown/gfm",
     extends: ["markdown/recommended"],
   },
+  prettier,
 ]);

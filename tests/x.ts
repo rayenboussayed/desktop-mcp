@@ -26,12 +26,14 @@ export class Xev {
     procs.push(this.proc);
     this.proc.stdout?.on("data", (d) => (this.out += d));
   }
+
   async ready(): Promise<this> { await sleep(700); return this; }
   async settle(ms = 400): Promise<this> { await sleep(ms); return this; }
   keys(): string[] { return [...this.out.matchAll(/KeyPress[\s\S]*?keysym 0x[0-9a-f]+, (\S+?)\)/g)].map((m) => m[1] as string); }
   buttons(kind: "ButtonPress" | "ButtonRelease" = "ButtonPress"): string[] {
     return [...this.out.matchAll(new RegExp(`${kind} event[\\s\\S]*?button (\\d)`, "g"))].map((m) => m[1] as string);
   }
+
   motions(): number { return (this.out.match(/MotionNotify/g) ?? []).length; }
   stop(): void { this.proc.kill("SIGKILL"); }
 }

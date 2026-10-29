@@ -1,0 +1,19 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "tags": [
+    "-lintignore"
+  ],
+  "ignoreFiles": [
+    "e2e.mjs"
+  ],
+  "ignoreBinaries": [
+    "Xvfb",
+    "xdpyinfo",
+    "openbox",
+    "xterm",
+    "xprop",
+    "xev",
+    "xsetroot",
+    "unshare"
+  ]
+}

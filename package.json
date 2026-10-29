@@ -1,0 +1,84 @@
+{
+  "name": "omcps",
+  "version": "0.4.0",
+  "description": "omcps: an MCP server that lets an AI use your computer (shell, files, clipboard, mouse, keyboard, screen OCR/image search, windows) with per-feature permission flags. Runs entirely locally. Use: npx omcps --allow-all",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "omcps": "./dist/bin/omcps.js",
+    "osagent-mcp": "./dist/bin/omcps.js",
+    "osagent": "./dist/bin/osagent.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "check": "npm run typecheck && npm run lint && npm run test && npm run knip && npm run build",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --fix --cache --max-warnings 0",
+    "knip": "knip",
+    "knip:fix": "knip -f",
+    "test": "vitest run --coverage",
+    "prepack": "npm run build",
+    "pretest": "npm run build",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^1.2.0",
+    "@deslint/eslint-plugin": "^0.10.0",
+    "@eslint/js": "^10.0.1",
+    "@eslint/json": "^2.1.1",
+    "@eslint/markdown": "^8.0.3",
+    "@types/node": "^26.6.6",
+    "@vitest/coverage-v8": "^5.0.5",
+    "@vitest/eslint-plugin": "^1.6.28",
+    "eslint": "^10.13.0",
+    "eslint-plugin-de-morgan": "^2.3.0",
+    "eslint-plugin-jsdoc": "^65.4.2",
+    "eslint-plugin-n": "^18.5.0",
+    "eslint-plugin-sonarjs": "^4.2.2",
+    "eslint-plugin-unicorn": "^79.0.0",
+    "globals": "^17.13.0",
+    "husky": "^9.1.7",
+    "knip": "^6.43.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.1",
+    "vitest": "^5.0.5"
+  },
+  "optionalDependencies": {
+    "@nut-tree-fork/nut-js": "^4.2.6",
+    "@tesseract.js-data/eng": "^1.0.0",
+    "jimp": "^0.22.12",
+    "tesseract.js": "^7.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "computer-use",
+    "desktop-automation",
+    "nut.js",
+    "ocr",
+    "local",
+    "permissions",
+    "npx"
+  ],
+  "peerDependencies": {
+    "@anthropic-ai/sdk": "^1.2.0"
+  },
+  "peerDependenciesMeta": {
+    "@anthropic-ai/sdk": {
+      "optional": true
+    }
+  }
+}

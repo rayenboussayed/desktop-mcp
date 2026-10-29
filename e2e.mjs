@@ -1,0 +1,16 @@
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+const t = new StdioClientTransport({ command: "node", args: ["dist/bin/osagent-mcp.js", "--gui"], env: { ...process.env } });
+const c = new Client({ name: "e2e", version: "1" });
+await c.connect(t);
+const tools = (await c.listTools()).tools;
+console.log("tools:", tools.length, "| click schema:", JSON.stringify(tools.find(x=>x.name==="click").inputSchema.properties));
+console.log("annotations run_command:", JSON.stringify(tools.find(x=>x.name==="run_command").annotations));
+const call = async (name, args={}) => { const r = await c.callTool({ name, arguments: args }); return r; };
+const txt = r => r.content.map(b => b.text ?? `<${b.type} ${b.mimeType} ${b.data?.length}b64>`).join(" | ");
+console.log("run_command:", txt(await call("run_command", { command: "echo hi-from-mcp" })).replace(/\n/g," ⏎ "));
+console.log("screen_size:", txt(await call("screen_size")));
+console.log("screenshot:", txt(await call("screenshot", { max_width: 640 })));
+console.log("bad key:", txt(await call("press_key", { keys: ["nonsense"] })));
+console.log("bad args:", txt(await call("click", { x: "a" })).slice(0,120));
+await c.close();

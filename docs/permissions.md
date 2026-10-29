@@ -119,4 +119,3 @@ Presets are selected with `--preset locked|readonly|standard|desktop|safe|full`.
 - `run_command` is not a sandbox and can reach anything the user can.
 - `--allow-open` starts programs with your rights.
 - The screen-corner fail-safe can block all input if the mouse sits there.
-EOF

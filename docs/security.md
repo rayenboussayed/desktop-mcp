@@ -38,4 +38,3 @@ running.
 
 Audit files are JSONL records, appended atomically in practice. If the file cannot be
 written, the call is refused.
-EOF

@@ -7,4 +7,3 @@
 - MP4 output is produced only when `ffmpeg` is present.
 - Duration and FPS have safe limits and are validated before recording.
 - Recording requires `screen.record` plus `files.write`.
-EOF

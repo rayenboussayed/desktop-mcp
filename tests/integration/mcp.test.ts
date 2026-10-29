@@ -158,6 +158,29 @@ describe("protocol (in-memory client <-> real server)", () => {
     expect(t).toContain("Dangerous shell commands are refused.");
     await close();
   });
+
+  it("initialize instructions document the runtime and permission policy", async () => {
+    const { client, close } = await connect({});
+    const instructions = client.getInstructions() ?? "";
+    expect(instructions).toMatch(/permission status/i);
+    expect(instructions).toMatch(/documentation/i);
+    expect(instructions).toContain("permissions_describe");
+    await close();
+  });
+
+  it("exposes and reads documentation and permission resources", async () => {
+    const { client, close } = await connect({ policy: "standard" });
+    const listed = await client.listResources();
+    const names = listed.resources.map((r) => r.name);
+    expect(names).toContain("desktop-mcp-documentation");
+    expect(names).toContain("desktop-mcp-permissions");
+    const docs = await client.readResource({ uri: "desktop-mcp://documentation" });
+    expect(String((docs.contents[0] as { text?: string }).text ?? "")).toMatch(/desktop-mcp runtime documentation/i);
+    const status = await client.readResource({ uri: "desktop-mcp://permissions" });
+    expect(String((status.contents[0] as { text?: string }).text ?? "")).toMatch(/Permission policy/i);
+    expect(String((status.contents[0] as { text?: string }).text ?? "")).toContain("Permission policy: standard");
+    await close();
+  });
 });
 
 describe("approvals through MCP elicitation", () => {

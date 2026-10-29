@@ -16,4 +16,3 @@ titles and WM helper frames, according to the window list behaviour.
 - The mouse in a screen corner acts as a human fail-safe and blocks input.
 - Keys and buttons that desktop-mcp holds are released when disconnecting.
 - `--block-key` and `--block-text` refuse dangerous combinations or content.
-EOF

@@ -36,4 +36,3 @@ nut.js uses X11; Wayland-only is not supported. XWayland or an X session is requ
 ## Why are some nut.js plugins unavailable?
 
 Many nut.js plugins are proprietary. Local substitutes are provided.
-EOF

@@ -86,4 +86,3 @@ Safety-net opt-outs:
 - `--allow-dangerous-commands`
 
 See [Permissions](./permissions.md) for the complete matrix and semantics.
-EOF

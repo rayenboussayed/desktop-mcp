@@ -32,9 +32,34 @@ const INSTRUCTIONS = `Controlled access to the user's computer ({os}). Tools: ru
 clipboard, open files/URLs, search the web and (if enabled) see and drive the desktop: mouse, keyboard, windows, \
 OCR, image matching.
 
-A permission policy limits what you may do: call permissions_describe to see it. Tools you cannot use are not \
-listed; a call outside the policy is refused with a reason. Work carefully: inspect before changing, verify \
-results after acting, prefer small reversible steps, and use commands that match the host OS (see system_info).`;
+A permission policy limits what you may do. Call permissions_describe, or read desktop-mcp://permissions, at the \
+start of any task: it is the authoritative status of what is allowed, requires approval, or is not available. \
+Tools you cannot use are not listed; a call outside the policy is refused with a reason. Work carefully: inspect \
+before changing, verify results after acting, prefer small reversible steps, and use commands that match the host OS \
+(see system_info). Read desktop-mcp://documentation for operational guidance.`;
+
+const MCP_DOCUMENTATION = `# desktop-mcp runtime documentation
+
+desktop-mcp is a local MCP server giving controlled access to the user's computer.
+Only tools permitted by the active policy are listed. Use the tool list and the
+permissions status as the source of truth.
+
+Feature areas:
+- Mouse, keyboard, clipboard and windows.
+- Screen capture, OCR, image matching, colour search and recording.
+- File, directory, process, shell and system tools.
+- Network-limited web tools.
+
+Safe-operation guidance:
+- Start with permissions_describe and treat its output as authoritative.
+- Inspect before changing; verify after acting.
+- Prefer small, reversible steps.
+- Respect read-only paths, denied paths and command allow-lists.
+- Keep typed text and command payloads short and deliberate.
+
+MCP resources:
+- desktop-mcp://documentation
+- desktop-mcp://permissions`;
 
 export interface ServerOptions {
   /** A preset name, a policy source (file / preset / overrides), or a ready engine. Default: the `full` preset. */
@@ -114,7 +139,11 @@ export async function selectTools(opts: ServerOptions = {}): Promise<Tool[]> {
  * @returns A configured MCP server.
  */
 export async function buildServer(opts: ServerOptions = {}): Promise<McpServer> {
-  const server = new McpServer({ name: "osagent-os-control", version: VERSION }, { instructions: INSTRUCTIONS.replace("{os}", currentOs()) });
+  const engine = opts.engine ?? await engineFor(opts);
+  const visibleTools = (await allTools(opts)).filter((tool) => engine.isVisible(tool.name));
+  const permissionStatus = engine.describe(visibleTools);
+  const instructions = `${INSTRUCTIONS.replace("{os}", currentOs())}\n\n${MCP_DOCUMENTATION}\n\nPermission status:\n${permissionStatus}\n\nRead the desktop-mcp://documentation and desktop-mcp://permissions resources for more detail.`;
+  const server = new McpServer({ name: "osagent-os-control", version: VERSION }, { instructions });
   /**
    * Ask the human through MCP elicitation, when the client supports it.
    * @param req - Elicitation request.
@@ -129,7 +158,7 @@ export async function buildServer(opts: ServerOptions = {}): Promise<McpServer> 
     });
     return r.action === "accept" && r.content?.approve === true;
   };
-  const engine = opts.engine ?? (await engineFor(opts));
+  // engine was created above so its permission summary can become part of the server instructions
   engine.setAsk(ask);
   for (const tool of await selectTools({ ...opts, engine })) {
     server.registerTool(
@@ -150,6 +179,18 @@ export async function buildServer(opts: ServerOptions = {}): Promise<McpServer> 
       },
     );
   }
+  server.registerResource(
+    "desktop-mcp-documentation",
+    "desktop-mcp://documentation",
+    { title: "desktop-mcp documentation", description: "Operational guidance for using desktop-mcp safely.", mimeType: "text/markdown" },
+    async (uri: URL) => ({ contents: [{ uri: String(uri), mimeType: "text/markdown", text: MCP_DOCUMENTATION }] }),
+  );
+  server.registerResource(
+    "desktop-mcp-permissions",
+    "desktop-mcp://permissions",
+    { title: "desktop-mcp permission status", description: "Allowed, approval-required and unavailable tools.", mimeType: "text/markdown" },
+    async (uri: URL) => ({ contents: [{ uri: String(uri), mimeType: "text/markdown", text: permissionStatus }] }),
+  );
   // never leave a key or mouse button held down, or an OCR worker running, after the client goes away
   server.server.onclose = () => void cleanup();
   return server;

@@ -49,4 +49,3 @@ Resize the region or use full screen.
 
 Ensure the directory exists and is writable. Failures are treated as failures in
 the tool path.
-EOF

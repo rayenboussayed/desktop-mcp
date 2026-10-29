@@ -28,4 +28,3 @@
 3. Create MCP server.
 4. Accept calls and enforce limits, regions, windows.
 5. Release held input and audit on exit.
-EOF

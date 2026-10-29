@@ -12,18 +12,14 @@ import deMoragn from "eslint-plugin-de-morgan";
 import n from "eslint-plugin-n";
 import sonarjs from "eslint-plugin-sonarjs";
 import deslint from "@deslint/eslint-plugin";
+import depend from "eslint-plugin-depend";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 const JS_FILES = "**/*.{ts,mts,cts}";
 const TS_FILES = "**/*.{ts,mts,cts}";
 
 export default defineConfig([
-  globalIgnores([
-    "node_modules",
-    "dist",
-    "package-lock.json",
-    "*.config.*",
-  ]),
+  globalIgnores(["node_modules", "dist", "package-lock.json", "*.config.*"]),
   {
     files: [JS_FILES, TS_FILES],
     plugins: {
@@ -32,8 +28,9 @@ export default defineConfig([
       unicorn: unicorn.configs.recommended,
       sonarjs: sonarjs.configs.recommended,
       deslint: deslint.configs.recommended,
+      depend,
     },
-    extends: ["js/recommended"],
+    extends: ["js/recommended", "depend/flat/recommended"],
     languageOptions: { globals: globals.node },
   },
   tseslint.configs.recommended,

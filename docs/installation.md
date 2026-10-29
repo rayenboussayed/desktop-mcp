@@ -57,4 +57,3 @@ desktop-mcp --policy-show
 
 A policy-show command exits without starting an MCP transport and prints the effective
 permission set.
-EOF

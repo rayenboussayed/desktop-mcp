@@ -31,4 +31,3 @@ automatically.
 ## Matching on HiDPI
 
 Coordinates and pixels use logical screen dimensions expected by pointer APIs.
-EOF

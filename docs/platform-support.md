@@ -31,4 +31,3 @@
   - clipboard: `xclip` (or `xsel`, `wl-copy`/`wl-paste`)
   - fail-safe display probe: `xdpyinfo`
   - `scroll` probe: `xev`
-EOF

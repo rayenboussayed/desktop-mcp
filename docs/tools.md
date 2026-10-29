@@ -74,4 +74,3 @@ granted are not even listed. The server also exposes `think`, `permissions_descr
 
 - `web_search`
 - `fetch_url`
-EOF

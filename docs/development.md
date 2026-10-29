@@ -46,4 +46,3 @@ When complete, append a note to `AGENTS.md` using the existing format.
 ## linting
 
 `eslint.config.ts` is intentionally not changed. Run lint with `--max-warnings 0`.
-EOF

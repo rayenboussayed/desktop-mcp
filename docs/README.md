@@ -44,4 +44,3 @@ file before giving broad access.
 
 The documented version is `0.4.0`. See `package.json` and `CHANGELOG`/release notes for
 exact changes.
-EOF

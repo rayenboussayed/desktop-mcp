@@ -26,10 +26,13 @@ const heldButtons = new Set<number>();
 export async function releaseHeldInputs(): Promise<void> {
   if (heldKeys.size === 0 && heldButtons.size === 0) return;
   const n = await nut();
-  for (const k of [...heldKeys]) await n.keyboard.releaseKey(k);
-  for (const b of [...heldButtons]) await n.mouse.releaseButton(b);
-  heldKeys.clear();
-  heldButtons.clear();
+  try {
+    for (const k of [...heldKeys]) await n.keyboard.releaseKey(k);
+    for (const b of [...heldButtons]) await n.mouse.releaseButton(b);
+  } finally {
+    heldKeys.clear();
+    heldButtons.clear();
+  }
 }
 
 // ------------------------------------------------------------------ screen

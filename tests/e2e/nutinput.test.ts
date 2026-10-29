@@ -4,11 +4,11 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import Jimp from "jimp";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
-import * as gui from "../src/tools/gui.js";
-import { callTool } from "../src/tools/base.js";
-import { rectOf } from "../src/nut/runtime.js";
-import { hasBinary, sleep, tmpDir } from "./helpers.js";
-import { haveX, haveXev, startXev, stopAll, type Xev } from "./x.js";
+import * as gui from "../../src/tools/gui.js";
+import { callTool } from "../../src/tools/base.js";
+import { rectOf } from "../../src/nut/runtime.js";
+import { hasBinary, sleep, tmpDir } from "../helpers.js";
+import { haveX, haveXev, startXev, stopAll, type Xev } from "../x.js";
 
 type Shot = [{ text: string }, { source: { data: string } }];
 const png = (s: Shot): Buffer => Buffer.from(s[1].source.data, "base64");

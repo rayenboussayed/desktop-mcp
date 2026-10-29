@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { TOOL_META } from "../src/policy/capabilities.js";
-import { CAPABILITIES } from "../src/policy/schema.js";
+import { TOOL_META } from "../../src/policy/capabilities.js";
+import { CAPABILITIES } from "../../src/policy/schema.js";
 
 const R = { x: 1, y: 2, width: 3, height: 4 };
 const region = { x: 1, y: 2, width: 3, height: 4 };

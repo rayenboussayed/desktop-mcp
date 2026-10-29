@@ -7,10 +7,10 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node
 import path from "node:path";
 import Jimp from "jimp";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
-import * as gui from "../src/tools/gui.js";
-import * as sys from "../src/tools/system.js";
-import { callTool } from "../src/tools/base.js";
-import { hasBinary, sleep, startXvfb, tmpDir, withEnv, withPlatform, type Xvfb } from "./helpers.js";
+import * as gui from "../../src/tools/gui.js";
+import * as sys from "../../src/tools/system.js";
+import { callTool } from "../../src/tools/base.js";
+import { hasBinary, sleep, startXvfb, tmpDir, withEnv, withPlatform, type Xvfb } from "../helpers.js";
 
 type Nut = typeof import("@nut-tree-fork/nut-js");
 type Shot = [{ text: string }, { source: { data: string } }];

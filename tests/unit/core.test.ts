@@ -2,11 +2,11 @@ import { chmodSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { currentOs, defaultShell, describePlatform, expandUser, which } from "../src/platform.js";
-import { buildToolset } from "../src/tools/index.js";
-import { callTool, defineTool, toApi, truncate } from "../src/tools/base.js";
-import { listDir, readFile, splitLines, writeFile } from "../src/tools/files.js";
-import { makeBin, tmpDir, withEnv, withPlatform } from "./helpers.js";
+import { currentOs, defaultShell, describePlatform, expandUser, which } from "../../src/platform.js";
+import { buildToolset } from "../../src/tools/index.js";
+import { callTool, defineTool, toApi, truncate } from "../../src/tools/base.js";
+import { listDir, readFile, splitLines, writeFile } from "../../src/tools/files.js";
+import { makeBin, tmpDir, withEnv, withPlatform } from "../helpers.js";
 import os from "node:os";
 
 describe("platform", () => {

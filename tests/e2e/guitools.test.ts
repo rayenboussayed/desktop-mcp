@@ -2,14 +2,14 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { buildServer } from "../src/mcpServer.js";
-import { PermissionEngine } from "../src/policy/engine.js";
-import { PolicySchema } from "../src/policy/schema.js";
-import { callTool } from "../src/tools/base.js";
-import * as gui from "../src/tools/gui.js";
-import { windowFocus } from "../src/tools/window.js";
-import { sleep } from "./helpers.js";
-import { haveWm, haveXev, openWindow, startXev, stopAll } from "./x.js";
+import { buildServer } from "../../src/mcpServer.js";
+import { PermissionEngine } from "../../src/policy/engine.js";
+import { PolicySchema } from "../../src/policy/schema.js";
+import { callTool } from "../../src/tools/base.js";
+import * as gui from "../../src/tools/gui.js";
+import { windowFocus } from "../../src/tools/window.js";
+import { sleep } from "../helpers.js";
+import { haveWm, haveXev, openWindow, startXev, stopAll } from "../x.js";
 
 const text = (r: unknown): string => (r as { content: { text?: string; type: string }[] }).content.map((c) => c.text ?? `<${c.type}>`).join("");
 const tools = Object.fromEntries(gui.guiTools.map((t) => [t.name, t]));
@@ -76,7 +76,7 @@ describe.skipIf(!haveWm)("MCP server + permission policy driving the real deskto
    * @returns The resulting value.
    */
   async function client(policy: object): Promise<Client> {
-    const engine = new PermissionEngine(PolicySchema.parse(policy), { activeWindowTitle: (await import("../src/tools/window.js")).activeWindowTitle });
+    const engine = new PermissionEngine(PolicySchema.parse(policy), { activeWindowTitle: (await import("../../src/tools/window.js")).activeWindowTitle });
     const server = await buildServer({ engine, gui: true });
     const [a, b] = InMemoryTransport.createLinkedPair();
     await server.connect(b);

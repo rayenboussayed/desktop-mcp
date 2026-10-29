@@ -1,14 +1,14 @@
 /** Window management against real windows (xterm) under a real EWMH window manager (openbox). */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { PermissionDenied, PermissionEngine } from "../src/policy/engine.js";
-import { PolicySchema } from "../src/policy/schema.js";
-import { callTool } from "../src/tools/base.js";
-import * as win from "../src/tools/window.js";
-import { __resetProviders, ensureProviders } from "../src/tools/vision.js";
-import { __setEnv, nut } from "../src/nut/runtime.js";
-import { withPlatform } from "./helpers.js";
-import { haveWm, openWindow, stopAll, xrun } from "./x.js";
-import { sleep } from "./helpers.js";
+import { PermissionDenied, PermissionEngine } from "../../src/policy/engine.js";
+import { PolicySchema } from "../../src/policy/schema.js";
+import { callTool } from "../../src/tools/base.js";
+import * as win from "../../src/tools/window.js";
+import { __resetProviders, ensureProviders } from "../../src/tools/vision.js";
+import { __setEnv, nut } from "../../src/nut/runtime.js";
+import { withPlatform } from "../helpers.js";
+import { haveWm, openWindow, stopAll, xrun } from "../x.js";
+import { sleep } from "../helpers.js";
 
 const info = async (title: string): Promise<win.WinInfo> => {
   const w = (await win.listWindows()).find((x) => x.title === title);
@@ -113,7 +113,7 @@ describe.skipIf(!haveWm)("windows on Linux (real window manager)", () => {
     expect((await info("osagent-B")).title).toBe("osagent-B"); // untouched
     // input tools are scoped by the ACTIVE window
     await win.windowFocus({ title: "osagent-B" });
-    const click = (await import("../src/tools/gui.js")).clickTool;
+    const click = (await import("../../src/tools/gui.js")).clickTool;
     await expect(engine.wrap(click).run({ x: 400, y: 400, button: "left", clicks: 1 })).rejects.toThrow(/active window "osagent-B" is not in the allowed windows/);
     await win.windowFocus({ title: "osagent-A" });
     await expect(engine.wrap(click).run({ x: 400, y: 400, button: "left", clicks: 1 })).resolves.toContain("clicked");

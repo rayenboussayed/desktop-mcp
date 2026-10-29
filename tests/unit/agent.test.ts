@@ -1,9 +1,9 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { Agent, DANGEROUS, SYSTEM_PROMPT, needsConfirmation, type ContentBlock, type MessagesClient } from "../src/agent.js";
-import { runCommandTool } from "../src/tools/shell.js";
-import { tmpDir } from "./helpers.js";
+import { Agent, DANGEROUS, SYSTEM_PROMPT, needsConfirmation, type ContentBlock, type MessagesClient } from "../../src/agent.js";
+import { runCommandTool } from "../../src/tools/shell.js";
+import { tmpDir } from "../helpers.js";
 
 type Turn = ContentBlock[];
 /**

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import * as api from "../src/index.js";
-import * as sys from "../src/tools/system.js";
-import { makeBin, isPosix, tmpDir, withEnv, withPlatform } from "./helpers.js";
+import * as api from "../../src/index.js";
+import * as sys from "../../src/tools/system.js";
+import { makeBin, isPosix, tmpDir, withEnv, withPlatform } from "../helpers.js";
 
 describe("public API", () => {
   it("exports the documented surface", () => {

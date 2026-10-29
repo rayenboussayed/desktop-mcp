@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { findColorRegions, parseColor } from "../src/plugins/color.js";
-import type { Bitmap } from "../src/plugins/matcher.js";
-import { callTool } from "../src/tools/base.js";
-import * as vision from "../src/tools/vision.js";
-import { listWindows, type WinInfo } from "../src/tools/window.js";
+import { findColorRegions, parseColor } from "../../src/plugins/color.js";
+import type { Bitmap } from "../../src/plugins/matcher.js";
+import { callTool } from "../../src/tools/base.js";
+import * as vision from "../../src/tools/vision.js";
+import { listWindows, type WinInfo } from "../../src/tools/window.js";
 import { afterAll, beforeAll } from "vitest";
-import { haveWm, haveXterm, openWindow, stopAll } from "./x.js";
+import { haveWm, haveXterm, openWindow, stopAll } from "../x.js";
 
 const paint = (w: number, h: number, rects: [number, number, number, number, number[]][]): Bitmap => {
   const data = new Uint8Array(w * h * 4);

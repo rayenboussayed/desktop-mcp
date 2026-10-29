@@ -1,8 +1,8 @@
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { runCommand } from "../src/tools/shell.js";
-import { makeBin, tmpDir, withPlatform, isPosix, sleep } from "./helpers.js";
-import { withEnv } from "./helpers.js";
+import { runCommand } from "../../src/tools/shell.js";
+import { makeBin, tmpDir, withPlatform, isPosix, sleep } from "../helpers.js";
+import { withEnv } from "../helpers.js";
 import { execFileSync } from "node:child_process";
 
 const NODE = `"${process.execPath}"`;

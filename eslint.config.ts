@@ -47,7 +47,7 @@ export default defineConfig([
     ...jsdoc({ config: "flat/recommended-tsdoc" }),
   },
   {
-    files: ["tests/**/*", "src/**/*.test.ts"],
+    files: ["tests/**/*.test.ts"],
     plugins: { vitest },
   },
   {

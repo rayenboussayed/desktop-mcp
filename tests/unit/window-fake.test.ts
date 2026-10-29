@@ -6,10 +6,10 @@
 import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { __setNutLoader } from "../src/nut/runtime.js";
-import * as gui from "../src/tools/gui.js";
-import * as win from "../src/tools/window.js";
-import { isPosix, makeBin, tmpDir, withEnv, withPlatform } from "./helpers.js";
+import { __setNutLoader } from "../../src/nut/runtime.js";
+import * as gui from "../../src/tools/gui.js";
+import * as win from "../../src/tools/window.js";
+import { isPosix, makeBin, tmpDir, withEnv, withPlatform } from "../helpers.js";
 
 type Nut = typeof import("@nut-tree-fork/nut-js");
 const calls: [string, ...unknown[]][] = [];

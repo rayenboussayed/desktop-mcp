@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it } from "vitest";
-import * as cb from "../src/tools/clipboard.js";
-import * as gui from "../src/tools/gui.js";
-import * as sys from "../src/tools/system.js";
-import { callTool } from "../src/tools/base.js";
-import { hasBinary, isPosix, makeBin, sleep, tmpDir, withEnv, withPlatform } from "./helpers.js";
-import { haveXev, startXev, stopAll } from "./x.js";
+import * as cb from "../../src/tools/clipboard.js";
+import * as gui from "../../src/tools/gui.js";
+import * as sys from "../../src/tools/system.js";
+import { callTool } from "../../src/tools/base.js";
+import { hasBinary, isPosix, makeBin, sleep, tmpDir, withEnv, withPlatform } from "../helpers.js";
+import { haveXev, startXev, stopAll } from "../x.js";
 
 const haveClip = haveXev && hasBinary("xclip");
 afterEach(async () => {

@@ -2,17 +2,17 @@ import { chmodSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from "
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { TOOL_META } from "../src/policy/capabilities.js";
+import { TOOL_META } from "../../src/policy/capabilities.js";
 import {
   PermissionDenied, PermissionEngine, canonicalPath, currentEngine, pathRegExp, type AskRequest, type EngineDeps,
-} from "../src/policy/engine.js";
-import { PolicyError, createEngine, parsePolicy, resolvePolicy } from "../src/policy/load.js";
-import { PRESET_NAMES, SENSITIVE_PATHS, preset } from "../src/policy/presets.js";
-import { PolicySchema, type PolicyInput } from "../src/policy/schema.js";
-import { defineTool, type Tool } from "../src/tools/base.js";
-import { readFileTool } from "../src/tools/files.js";
+} from "../../src/policy/engine.js";
+import { PolicyError, createEngine, parsePolicy, resolvePolicy } from "../../src/policy/load.js";
+import { PRESET_NAMES, SENSITIVE_PATHS, preset } from "../../src/policy/presets.js";
+import { PolicySchema, type PolicyInput } from "../../src/policy/schema.js";
+import { defineTool, type Tool } from "../../src/tools/base.js";
+import { readFileTool } from "../../src/tools/files.js";
 import { z } from "zod";
-import { tmpDir } from "./helpers.js";
+import { tmpDir } from "../helpers.js";
 
 const engine = (input: PolicyInput, deps: EngineDeps = {}): PermissionEngine => new PermissionEngine(PolicySchema.parse(input), deps);
 const allowed = async (e: PermissionEngine, tool: string, args: Record<string, unknown> = {}): Promise<boolean> => (await e.authorize(tool, args)).allowed;
@@ -62,8 +62,8 @@ describe("schema and loader", () => {
 
 describe("tool metadata", () => {
   it("every tool the server can register has permission metadata, and vice versa", async () => {
-    const { selectTools } = await import("../src/mcpServer.js");
-    const { buildToolset } = await import("../src/tools/index.js");
+    const { selectTools } = await import("../../src/mcpServer.js");
+    const { buildToolset } = await import("../../src/tools/index.js");
     const served = (await selectTools({ gui: true, policy: "full" })).map((t) => t.name);
     const agent = [...(await buildToolset(true, true)).keys()];
     expect([...new Set([...served, ...agent])].sort()).toEqual(Object.keys(TOOL_META).sort());

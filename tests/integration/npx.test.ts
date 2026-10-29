@@ -5,7 +5,7 @@ import path from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { describe, expect, it } from "vitest";
-import { tmpDir } from "./helpers.js";
+import { tmpDir } from "../helpers.js";
 
 // needs the npm registry to fetch the package's own dependencies
 const registryUp = spawnSync("npm", ["view", "jimp", "version"], { encoding: "utf8", timeout: 60_000 }).status === 0;

@@ -8,8 +8,8 @@ import { spawnSync } from "node:child_process";
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it, afterAll } from "vitest";
-import { hasBinary, tmpDir } from "./helpers.js";
-import { haveWm, haveXterm, openWindow, stopAll } from "./x.js";
+import { hasBinary, tmpDir } from "../helpers.js";
+import { haveWm, haveXterm, openWindow, stopAll } from "../x.js";
 
 const walk = (dir: string): string[] => readdirSync(dir).flatMap((n) => { const p = path.join(dir, n); return statSync(p).isDirectory() ? walk(p) : p.endsWith(".ts") ? [p] : []; });
 const SRC = walk("src").filter((f) => !f.includes(`${path.sep}bin${path.sep}`));

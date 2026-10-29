@@ -1,8 +1,8 @@
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { fetchUrl, fetchUrlTool, htmlToText, parseResults, unescapeHtml, webSearch, webSearchTool } from "../src/tools/search.js";
-import { withEnv } from "./helpers.js";
+import { fetchUrl, fetchUrlTool, htmlToText, parseResults, unescapeHtml, webSearch, webSearchTool } from "../../src/tools/search.js";
+import { withEnv } from "../helpers.js";
 
 const PAGE =
   '<a class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Fx">Ex &amp; Co</a>' +

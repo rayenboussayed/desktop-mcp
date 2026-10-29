@@ -3,8 +3,8 @@ import { chmodSync, existsSync, mkdirSync, readFileSync, symlinkSync, writeFileS
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it, beforeAll, afterAll } from "vitest";
-import * as sys from "../src/tools/system.js";
-import { hasBinary, isPosix, makeBin, sleep, startXvfb, tmpDir, withEnv, withPlatform, type Xvfb } from "./helpers.js";
+import * as sys from "../../src/tools/system.js";
+import { hasBinary, isPosix, makeBin, sleep, startXvfb, tmpDir, withEnv, withPlatform, type Xvfb } from "../helpers.js";
 
 describe("system_info / env", () => {
   it("summarises the machine", async () => {

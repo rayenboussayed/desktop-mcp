@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findTemplate, findTemplateScaled, type Bitmap } from "../src/plugins/matcher.js";
+import { findTemplate, findTemplateScaled, type Bitmap } from "../../src/plugins/matcher.js";
 
 /**
  * Build a bitmap from a per-pixel function returning [r,g,b,a?].

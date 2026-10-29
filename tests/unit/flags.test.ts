@@ -2,12 +2,12 @@ import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import { describe, expect, it } from "vitest";
-import { FLAG_OPTIONS, GROUPS, anyPermissionFlag, permissionHelp, policyFromFlags } from "../src/policy/flags.js";
-import { PermissionEngine } from "../src/policy/engine.js";
-import { PolicyError } from "../src/policy/load.js";
-import { SENSITIVE_PATHS, preset } from "../src/policy/presets.js";
-import { CAPABILITIES, type Capability } from "../src/policy/schema.js";
-import { tmpDir } from "./helpers.js";
+import { FLAG_OPTIONS, GROUPS, anyPermissionFlag, permissionHelp, policyFromFlags } from "../../src/policy/flags.js";
+import { PermissionEngine } from "../../src/policy/engine.js";
+import { PolicyError } from "../../src/policy/load.js";
+import { SENSITIVE_PATHS, preset } from "../../src/policy/presets.js";
+import { CAPABILITIES, type Capability } from "../../src/policy/schema.js";
+import { tmpDir } from "../helpers.js";
 
 const parse = (argv: string[]): Record<string, unknown> => parseArgs({ args: argv, options: FLAG_OPTIONS }).values as Record<string, unknown>;
 const policy = async (...argv: string[]) => (await policyFromFlags(parse(argv))).policy;

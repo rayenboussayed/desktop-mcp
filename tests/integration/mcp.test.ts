@@ -11,13 +11,13 @@ import { ReadBuffer, serializeMessage } from "@modelcontextprotocol/sdk/shared/s
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { ElicitRequestSchema, type JSONRPCMessage } from "@modelcontextprotocol/sdk/types.js";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { TOOL_META } from "../src/policy/capabilities.js";
-import { PermissionEngine } from "../src/policy/engine.js";
-import { PolicySchema } from "../src/policy/schema.js";
-import { allTools, buildServer, cleanup, engineFor, main, selectTools, serveHttp, type ServerOptions } from "../src/mcpServer.js";
-import { VERSION } from "../src/version.js";
-import { tmpDir } from "./helpers.js";
-import { haveXev, startXev, stopAll } from "./x.js";
+import { TOOL_META } from "../../src/policy/capabilities.js";
+import { PermissionEngine } from "../../src/policy/engine.js";
+import { PolicySchema } from "../../src/policy/schema.js";
+import { allTools, buildServer, cleanup, engineFor, main, selectTools, serveHttp, type ServerOptions } from "../../src/mcpServer.js";
+import { VERSION } from "../../src/version.js";
+import { tmpDir } from "../helpers.js";
+import { haveXev, startXev, stopAll } from "../x.js";
 
 const names = async (o: ServerOptions): Promise<string[]> => (await selectTools(o)).map((t) => t.name);
 const textOf = (r: unknown): string =>
@@ -316,7 +316,7 @@ describe("real transports", () => {
     const ok = await serveHttp({ policy: "readonly" }, "127.0.0.1", 0);
     try {
       const port = (ok.address() as AddressInfo).port;
-      const spy = vi.spyOn(await import("../src/mcpServer.js"), "buildServer");
+      const spy = vi.spyOn(await import("../../src/mcpServer.js"), "buildServer");
       spy.mockRestore();
       const r = await fetch(`http://127.0.0.1:${port}/mcp`, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }) });
       expect(r.status).toBeLessThan(500);

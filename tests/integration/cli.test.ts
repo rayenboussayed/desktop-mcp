@@ -1,8 +1,8 @@
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
-import type { AgentOptions } from "../src/agent.js";
-import { main, show, type CliIo } from "../src/cli.js";
+import type { AgentOptions } from "../../src/agent.js";
+import { main, show, type CliIo } from "../../src/cli.js";
 
 const BIN = path.resolve("dist/bin/osagent.js");
 

@@ -11,6 +11,11 @@
  */
 import type Jimp from "jimp";
 import { createConnection } from "node:net";
+import { execFile as execFileCb } from "node:child_process";
+import { mkdtemp, rm } from "node:fs/promises";
+import { promisify } from "node:util";
+import os from "node:os";
+import path from "node:path";
 import { currentOs } from "../platform.js";
 
 export type Nut = typeof import("@nut-tree-fork/nut-js");
@@ -128,16 +133,31 @@ export interface Shot {
  * @returns The screenshot bitmap and its pixel density.
  */
 export async function grab(n: Nut, rect?: Rect): Promise<Shot> {
-  const jimp = await n.imageToJimp(await n.screen.grab());
-  const [screenW, screenH] = [await n.screen.width(), await n.screen.height()];
-  const density = jimp.getWidth() / screenW;
-  if (rect) {
-    if (rect.x < 0 || rect.y < 0 || rect.x + rect.width > screenW || rect.y + rect.height > screenH) {
-      throw new Error(`region ${rect.width}x${rect.height}+${rect.x}+${rect.y} is outside the ${screenW}x${screenH} screen`);
+  if (isWayland()) {
+    try {
+      return await captureExternal(rect);
+    } catch (e) {
+      throw new Error(`screen capture failed on this Wayland session: ${(e as Error).message}. Ensure a working capture tool (spectacle) is installed.`, { cause: e });
     }
-    jimp.crop(Math.round(rect.x * density), Math.round(rect.y * density), Math.round(rect.width * density), Math.round(rect.height * density));
   }
-  return { jimp, screenW, screenH, density };
+  try {
+    const jimp = await n.imageToJimp(await n.screen.grab());
+    const [screenW, screenH] = [await n.screen.width(), await n.screen.height()];
+    const density = jimp.getWidth() / screenW;
+    if (rect) {
+      if (rect.x < 0 || rect.y < 0 || rect.x + rect.width > screenW || rect.y + rect.height > screenH) {
+        throw new Error(`region ${rect.width}x${rect.height}+${rect.x}+${rect.y} is outside the ${screenW}x${screenH} screen`);
+      }
+      jimp.crop(Math.round(rect.x * density), Math.round(rect.y * density), Math.round(rect.width * density), Math.round(rect.height * density));
+    }
+    return { jimp, screenW, screenH, density };
+  } catch (e) {
+    try {
+      return await captureExternal(rect);
+    } catch (fallback) {
+      throw new Error(`screen capture failed: ${(e as Error).message}; fallback: ${(fallback as Error).message}`, { cause: fallback });
+    }
+  }
 }
 
 /**
@@ -154,6 +174,65 @@ export function rectOf(a: { x?: number; y?: number; width?: number; height?: num
   if (given === 0) return undefined;
   if (given !== 4) throw new Error("a region needs all of x, y, width and height");
   return { x: a.x as number, y: a.y as number, width: a.width as number, height: a.height as number };
+}
+
+const execFile = promisify(execFileCb);
+
+/**
+ * Environment hook for tests (and the deployment): override the screenshot capture command.
+ * @internal
+ */
+let externalCaptureOverride: ((rect?: Rect) => Promise<Shot>) | undefined;
+
+/**
+ * Test hook: replace the external screenshot capture implementation.
+ * @param fn - Capture function to use, or `undefined` to restore the default.
+ */
+export function __setExternalCapture(fn: ((rect?: Rect) => Promise<Shot>) | undefined): void {
+  externalCaptureOverride = fn;
+}
+
+/**
+ * Whether this is a Wayland session: native nut.js `screen.grab()` / X_GetImage on the (rootless) XWayland
+ * root window fails with `BadMatch`, taking the whole Node process with it, so we must capture through a native
+ * Wayland tool instead.
+ * @param env - Environment to inspect.
+ * @returns Whether Wayland is the backing display server.
+ */
+export function isWayland(env: NodeJS.ProcessEnv = envSource()): boolean {
+  const direct = (env.WAYLAND_DISPLAY ?? "").trim();
+  if (direct) return true;
+  if ((env.XDG_SESSION_TYPE ?? "").trim().toLowerCase() === "wayland") return true;
+  return false;
+}
+
+/**
+ * Capture the screen with a native Wayland-aware tool (spectacle / KDE), since nut.js's X_GetImage call cannot
+ * work against a rootless Xwayland root window. Writes a temporary PNG and reads it back with jimp.
+ * @param rect - Optional region to crop to.
+ * @returns The captured screenshot.
+ */
+export async function captureExternal(rect?: Rect): Promise<Shot> {
+  if (externalCaptureOverride) return externalCaptureOverride(rect);
+  const tmp = await mkdtemp(path.join(os.tmpdir(), "omcps-shot-"));
+  const file = path.join(tmp, "shot.png");
+  try {
+    await execFile("spectacle", ["-b", "-f", "-n", "-o", file], { timeout: 15000 });
+    const jimpModule = (await import("jimp")) as { default?: (typeof import("jimp")) };
+    const JimpCtor = (jimpModule.default ?? jimpModule) as { read: (p: string) => Promise<Jimp> };
+    const jimp = await JimpCtor.read(file);
+    const screenW = jimp.getWidth();
+    const screenH = jimp.getHeight();
+    if (rect) {
+      if (rect.x < 0 || rect.y < 0 || rect.x + rect.width > screenW || rect.y + rect.height > screenH) {
+        throw new Error(`region ${rect.width}x${rect.height}+${rect.x}+${rect.y} is outside the ${screenW}x${screenH} screen`);
+      }
+      jimp.crop(rect.x, rect.y, rect.width, rect.height);
+    }
+    return { jimp, screenW, screenH, density: 1 };
+  } finally {
+    await rm(tmp, { recursive: true, force: true }).catch(() => undefined);
+  }
 }
 
 export const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));

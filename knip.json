@@ -14,6 +14,7 @@
     "xprop",
     "xev",
     "xsetroot",
-    "unshare"
+    "unshare",
+    "spectacle"
   ]
 }

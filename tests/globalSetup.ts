@@ -78,6 +78,8 @@ async function startStack(): Promise<Stack | undefined> {
  */
 export default async function setup(): Promise<() => Promise<void>> {
   delete process.env.DISPLAY; // never drive a real desktop from the tests
+  delete process.env.WAYLAND_DISPLAY; // force tests onto the private Xvfb instead of a Wayland session
+  delete process.env.XDG_SESSION_TYPE;
   if (!have("Xvfb")) return async () => {};
   for (let attempt = 1; attempt <= 3; attempt++) {
     const stack = await startStack();

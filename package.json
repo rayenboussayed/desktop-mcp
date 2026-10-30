@@ -1,6 +1,6 @@
 {
   "name": "desktop-mcp",
-  "version": "0.4.0",
+  "version": "1.0.0",
   "description": "desktop-mcp: an MCP server that lets an AI use your computer (shell, files, clipboard, mouse, keyboard, screen OCR/image search, windows) with per-feature permission flags. Runs entirely locally. Use: npx desktop-mcp --allow-all",
   "type": "module",
   "license": "MIT",

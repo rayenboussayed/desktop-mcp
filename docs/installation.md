@@ -19,7 +19,7 @@ Until the package is published, install from the locally built tarball:
 ```bash
 npm run build
 npm pack
-npx --package=./desktop-mcp-0.4.0.tgz desktop-mcp --allow-all
+npx --package=./desktop-mcp-1.0.0.tgz desktop-mcp --allow-all
 ```
 
 ### From source

@@ -24,7 +24,7 @@ a per-feature permission flag system plus a high-risk tool confirmation step.
 - `npm run check` — `typecheck -> lint -> test -> knip -> build`. **Must be green with
   zero errors and zero warnings before you consider your work done.**
 
-Version (`package.json`): `0.4.0`.
+Version (`package.json`): `1.0.0`.
 
 ## Architecture (quick map)
 

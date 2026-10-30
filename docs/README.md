@@ -42,5 +42,5 @@ file before giving broad access.
 
 ## Current version
 
-The documented version is `0.4.0`. See `package.json` and `CHANGELOG`/release notes for
+The documented version is `1.0.0`. See `package.json` and `CHANGELOG`/release notes for
 exact changes.

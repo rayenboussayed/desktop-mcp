@@ -38,7 +38,7 @@ Run it as an HTTP server instead of stdio: `npx desktop-mcp@latest --allow-all -
 (`http://127.0.0.1:8000/mcp`; binds to localhost and rejects foreign `Host` headers).
 
 > The package is named `desktop-mcp`; until it is published to the npm registry, install from the tarball:
-> `npx --package=./desktop-mcp-0.4.0.tgz desktop-mcp --allow-all`.
+> `npx --package=./desktop-mcp-1.0.0.tgz desktop-mcp --allow-all`.
 
 ## Permissions
 

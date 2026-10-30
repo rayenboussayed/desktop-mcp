@@ -87,5 +87,14 @@
     "ollama": {
       "optional": true
     }
+  },
+  "author": "Rayen Boussayed <rayenboussayed@gmail.com>",
+  "homepage": "https://github.com/rayenboussayed/desktop-mcp",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rayenboussayed/desktop-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rayenboussayed/desktop-mcp/issues"
   }
 }

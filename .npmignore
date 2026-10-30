@@ -1,0 +1,14 @@
+.git
+.gitignore
+.github
+eslint-cache
+coverage
+*.tgz
+*.log
+.env
+src
+tests
+docs
+tsconfig*.json
+vitest.config.ts
+AGENTS.md

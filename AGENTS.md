@@ -187,3 +187,9 @@ entries; if a later entry corrects one, add a new entry referencing the earlier 
   while the X11 stack needs environment variables and the persistent prefix is
   absent, so verify manually or provide a runner with the `/tmp/opencode/x11prefix`
   stack on PATH.
+
+### 2026-10-31 — corrected current commit reference
+
+- The previous note referred to code commit `5d8d2a2`; this documentation update is
+  committed separately as `1ff9a91`. `main` and `origin/main` remain clean and aligned.
+- All repository-state statements in this session remain accurate.

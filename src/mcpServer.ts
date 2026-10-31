@@ -16,7 +16,7 @@ import type { Readable, Writable } from "node:stream";
 import { parseArgs } from "node:util";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { currentOs, describePlatform } from "./platform.js";
 import { PermissionDenied, PermissionEngine, type AskFn } from "./policy/engine.js";
@@ -212,6 +212,7 @@ export async function cleanup(): Promise<void> {
  */
 export async function serveHttp(opts: ServerOptions, host = "127.0.0.1", port = 8000, route = "/mcp"): Promise<HttpServer> {
   const localOnly = ["127.0.0.1", "localhost", "::1"].includes(host);
+  const { StreamableHTTPServerTransport } = await import("@modelcontextprotocol/sdk/server/streamableHttp.js");
   const json = (res: ServerResponse, status: number, message: string): void => {
     res.writeHead(status, { "content-type": "application/json" });
     res.end(JSON.stringify({ jsonrpc: "2.0", error: { code: -32000, message }, id: null }));

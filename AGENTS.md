@@ -155,3 +155,35 @@ entries; if a later entry corrects one, add a new entry referencing the earlier 
   npm run check` -> typecheck (0), lint (0), 467 passed/1 skipped, 100% coverage, knip, build all green.
 - Limitation: machine X11 toolchain was re-extracted into `/tmp/opencode/x11prefix` for this check because
   the user removed `~/.local/opt/omcps-x11`; re-run the same env exports to reproduce.
+
+### 2026-10-31 — current repository state (cast removal follow-up)
+
+- Current committed state is clean on `main` at `5d8d2a2` (`refactor: remove all
+  as any/unknown/never casts`), already pushed to `origin/main`.
+- `package.json` remains version `1.0.0`, with bins `desktop-mcp`, `osagent-mcp`,
+  `osagent`, optional dependencies including `ollama`, and publishing files
+  `.npmignore`.
+- No banned casts remain under `src/` or `tests/` outside of this AGENTS.md text.
+- The test tree has 27 files and 468 tests: 467 pass and 1 is skipped. Full
+  coverage remains required and was satisfied as 100% across statements, branches,
+  functions, and lines using the restored X11 stack.
+- The helper signatures changed to interface types: `exec.killTree(child)`,
+  `shell.runCommand(..., cwd?)`, `nut/keys.keyFromName/listKeyNames(n)`, and the
+  agent message/tools adapters, plus `nut/runtime.canConnect` via `MiniSocket`.
+- The user removed the persistent `~/.local/opt/omcps-x11` prefix. Its wrapper
+  scripts under `~/.local/bin` now point at a missing directory and are not a
+  reliable verification path.
+- The verified check command for this machine is:
+  `PATH=/tmp/opencode/x11prefix/usr/bin:$PATH
+  LD_LIBRARY_PATH=/tmp/opencode/x11prefix/usr/lib64
+  XDG_DATA_DIRS=/tmp/opencode/x11prefix/usr/share:/usr/share
+  npm run check`.
+- Last successful check: typecheck 0 errors, lint 0 warnings, 467 passed/1 skipped,
+  100% coverage (2146 statements, 1319 branches, 532 functions, 1661 lines), knip
+  clean, and build successful.
+- `docs/development.md` still mentions the old `~/.local/bin` wrapper path; update
+  it when editing documentation if that wording is intended to remain accurate.
+- Husky's `.husky/pre-commit` still invokes bare `npm run check`; it cannot pass
+  while the X11 stack needs environment variables and the persistent prefix is
+  absent, so verify manually or provide a runner with the `/tmp/opencode/x11prefix`
+  stack on PATH.

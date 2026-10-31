@@ -39,7 +39,7 @@ export function registerProviders(n: Nut, lang = "eng"): ProviderNames {
       const [hay, needle] = [await bitmap(n, req.haystack), await bitmap(n, req.needle)];
       return findTemplate(hay, needle, { confidence: req.confidence ?? 0.99, maxResults: 50 }).map((m) => new n.MatchResult(m.confidence, region(m)));
     },
-  } as never);
+  });
 
   const textHits = async (req: Req<{ by: { word?: string; line?: string } }>) => {
     const ocr = await recognize((await bitmap(n, req.haystack)).png, lang);
@@ -55,7 +55,7 @@ export function registerProviders(n: Nut, lang = "eng"): ProviderNames {
     async findMatches(req: Req<{ by: { word?: string; line?: string } }>) {
       return (await textHits(req)).map((h) => new n.MatchResult(h.confidence, region(h)));
     },
-  } as never);
+  });
 
   const windowMatches = async (q: { by: { title: string | RegExp } }): Promise<number[]> => {
     const t = q.by.title;
@@ -68,6 +68,6 @@ export function registerProviders(n: Nut, lang = "eng"): ProviderNames {
       return h;
     },
     findMatches: windowMatches,
-  } as never);
+  });
   return { image: true, text: true, window: true };
 }

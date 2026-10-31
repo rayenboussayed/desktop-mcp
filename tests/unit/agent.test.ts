@@ -119,7 +119,7 @@ describe("agent loop", () => {
         }
       },
     };
-    __setSdkLoader(() => Promise.resolve(fake as never));
+    __setSdkLoader(() => Promise.resolve(fake));
     try {
       const out = await new Agent({ search: false }).run("hi");
       expect(out).toBe("done");

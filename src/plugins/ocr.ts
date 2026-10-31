@@ -23,7 +23,7 @@ interface TessBlock { paragraphs: { lines: TessLine[] }[] }
 interface TessModule { createWorker(lang: string, oem: number, opts: object): Promise<TessWorker> }
 
 const require_ = createRequire(import.meta.url);
-let loadEngine: () => Promise<TessModule> = () => import("tesseract.js") as unknown as Promise<TessModule>;
+let loadEngine: () => Promise<TessModule> = () => import("tesseract.js") as Promise<TessModule>;
 const workers = new Map<string, Promise<TessWorker>>();
 
 /**
@@ -31,7 +31,7 @@ const workers = new Map<string, Promise<TessWorker>>();
  * @param fn - Engine loader to install, or `undefined` to restore the default.
  */
 export function __setOcrEngine(fn: (() => Promise<TessModule>) | undefined): void {
-  loadEngine = fn ?? (() => import("tesseract.js") as unknown as Promise<TessModule>);
+  loadEngine = fn ?? (() => import("tesseract.js") as Promise<TessModule>);
   workers.clear();
 }
 

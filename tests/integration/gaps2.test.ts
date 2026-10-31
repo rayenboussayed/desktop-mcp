@@ -79,7 +79,7 @@ describe.skipIf(!haveWm || !haveXterm)("providers called directly, and the visio
     const n = await nut();
     vision.__resetProviders();
     vision.ensureProviders(n);
-    const finder = n.providerRegistry.getImageFinder() as unknown as {
+    const finder = n.providerRegistry.getImageFinder() as {
       findMatch(r: { haystack: unknown; needle: unknown; confidence?: number }): Promise<{ confidence: number; location: { left: number; top: number } }>;
       findMatches(r: { haystack: unknown; needle: unknown; confidence?: number }): Promise<unknown[]>;
     };
@@ -109,7 +109,7 @@ describe.skipIf(!haveWm || !haveXterm)("providers called directly, and the visio
 
   it("text finder: line and word queries, all matches, and no match", async () => {
     const n = await nut();
-    const finder = n.providerRegistry.getTextFinder() as unknown as {
+    const finder = n.providerRegistry.getTextFinder() as {
       findMatch(r: { haystack: unknown; needle: unknown }): Promise<{ location: { left: number; top: number } }>;
       findMatches(r: { haystack: unknown; needle: unknown }): Promise<{ location: { left: number } }[]>;
     };

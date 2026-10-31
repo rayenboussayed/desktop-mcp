@@ -46,7 +46,7 @@ function toolNameMap(messages: unknown[]): Map<string, string> {
  * @returns Ollama-shaped messages.
  */
 export function messagesToOllama(params: Record<string, unknown>): { role: string; content: string; tool_calls?: { function: { name: string; arguments: unknown } }[]; tool_name?: string }[] {
-  const names = toolNameMap(Array.isArray(params.messages) ? (params.messages as unknown[]) : []);
+  const names = toolNameMap(Array.isArray(params.messages) ? params.messages : []);
   const out: { role: string; content: string; tool_calls?: { function: { name: string; arguments: unknown } }[]; tool_name?: string }[] = [];
   if (typeof params.system === "string" && params.system.trim()) out.push({ role: "system", content: params.system });
   for (const m of (Array.isArray(params.messages) ? params.messages : []) as { role?: string; content?: unknown }[]) {
@@ -93,13 +93,14 @@ export async function ollamaCreate(ollama: unknown, params: Record<string, unkno
  * Test hook: where the optional Ollama SDK comes from.
  * @returns The optional Ollama SDK module.
  */
-let loadSdk: () => Promise<typeof import("ollama")> = () => import("ollama");
+interface SdkModule { Ollama: new (options: { host: string }) => unknown }
+let loadSdk: () => Promise<SdkModule> = () => import("ollama") as Promise<SdkModule>;
 /**
  *
  * @param fn - Loader to install, or `undefined` to restore the default.
  */
-export function __setSdkLoader(fn: (() => Promise<typeof import("ollama")>) | undefined): void {
-  loadSdk = fn ?? (() => import("ollama"));
+export function __setSdkLoader(fn: (() => Promise<SdkModule>) | undefined): void {
+  loadSdk = fn ?? (() => import("ollama") as Promise<SdkModule>);
 }
 
 export const DEFAULT_MODEL = "llama3.2";

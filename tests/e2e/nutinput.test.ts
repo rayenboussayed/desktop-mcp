@@ -10,7 +10,15 @@ import { rectOf } from "../../src/nut/runtime.js";
 import { hasBinary, sleep, tmpDir } from "../helpers.js";
 import { haveX, haveXev, startXev, stopAll, type Xev } from "../x.js";
 
+import type { ToolResult } from "../../src/tools/base.js";
+
 type Shot = [{ text: string }, { source: { data: string } }];
+const toShot = (r: ToolResult): Shot => {
+  if (typeof r === "string") throw new Error("expected image blocks");
+  const [text, image] = r;
+  if (!text || text.type !== "text" || !image || image.type !== "image") throw new Error("expected text and image blocks");
+  return [{ text: text.text }, { source: { data: image.source.data } }];
+};
 const png = (s: Shot): Buffer => Buffer.from(s[1].source.data, "base64");
 const dims = (b: Buffer): [number, number] => [b.readUInt32BE(16), b.readUInt32BE(20)];
 
@@ -142,13 +150,13 @@ describe.skipIf(!haveX)("screen", () => {
   it("captures a region, cropped to the requested size", async () => {
     spawnSync("xsetroot", ["-solid", "#ff0000"]);
     await sleep(150);
-    const s = (await gui.screenshot(1280, { x: 200, y: 100, width: 120, height: 60 })) as unknown as Shot;
+    const s = toShot(await gui.screenshot(1280, { x: 200, y: 100, width: 120, height: 60 }));
     expect(dims(png(s))).toEqual([120, 60]);
     expect(s[0].text).toContain("region 120x60+200+100 of a 1280x800 screen");
     expect(s[0].text).toContain("Real screen coordinates = (200 + image_x / 1.000, 100 + image_y / 1.000)");
     const px = Jimp.intToRGBA((await Jimp.read(png(s))).getPixelColor(5, 5));
     expect([px.r, px.g, px.b]).toEqual([255, 0, 0]);
-    const small = (await gui.screenshot(60, { x: 200, y: 100, width: 120, height: 60 })) as unknown as Shot;
+    const small = toShot(await gui.screenshot(60, { x: 200, y: 100, width: 120, height: 60 }));
     expect(dims(png(small))).toEqual([60, 30]);
     expect(small[0].text).toContain("scaled by 0.500");
   });
@@ -189,7 +197,8 @@ describe.skipIf(!haveX)("screen", () => {
     const t = Object.fromEntries(gui.guiTools.map((x) => [x.name, x]));
     expect(await callTool(t.screen_highlight!, { x: 1, y: 1, width: 5, height: 5, duration_ms: 20 })).toContain("highlighted 5x5+1+1");
     expect(await callTool(t.screen_color_at!, { x: 3, y: 3 })).toMatch(/^rgb\(/);
-    const shot = (await callTool(t.screenshot!, { x: 0, y: 0, width: 10, height: 10 })) as unknown[];
+    const shot = await callTool(t.screenshot!, { x: 0, y: 0, width: 10, height: 10 });
+    expect(Array.isArray(shot)).toBe(true);
     expect(shot).toHaveLength(2);
     expect(await callTool(t.screenshot_save!, { path: path.join(tmpDir(), "t.png"), x: 0, y: 0, width: 10, height: 10 })).toContain("saved 10x10");
   });

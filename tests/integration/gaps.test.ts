@@ -31,12 +31,13 @@ afterEach(() => vi.restoreAllMocks());
 
 describe("exec: process-tree kill and capture limits", () => {
   it("killTree handles a child without a pid, win32 (taskkill), and failing kills", async () => {
-    expect(() => killTree({ pid: undefined } as never)).not.toThrow();
-    withPlatform("win32", () => expect(() => killTree({ pid: 99_999_999 } as never)).not.toThrow()); // taskkill is absent here: the error is swallowed
+    expect(() => killTree({ pid: undefined })).not.toThrow();
+    withPlatform("win32", () => expect(() => killTree({ pid: 99_999_999 })).not.toThrow()); // taskkill is absent here: the error is swallowed
     const fallback = vi.fn();
-    killTree({ pid: 4_194_000, kill: fallback } as never); // no such process group: falls back to child.kill
+    killTree({ pid: 4_194_000, kill: fallback }); // no such process group: falls back to child.kill
     expect(fallback).toHaveBeenCalledWith("SIGKILL");
-    expect(() => killTree({ pid: 4_194_000, kill: () => { throw new Error("gone"); } } as never)).not.toThrow();
+    expect(() => killTree({ pid: 4_194_000 })).not.toThrow(); // no fallback available: nothing left to kill
+    expect(() => killTree({ pid: 4_194_000, kill: () => { throw new Error("gone"); } })).not.toThrow();
     await sleep(50);
   });
   it("a synchronous spawn failure becomes an error result", async () => {
@@ -68,14 +69,14 @@ describe("exec: process-tree kill and capture limits", () => {
 
 describe("shell and exec safety", () => {
   it("guarded killTree ignores zero and negative PIDs even in Windows mode", async () => {
-    expect(() => killTree({ pid: 0 } as never)).not.toThrow();
-    expect(() => killTree({ pid: -1 } as never)).not.toThrow();
-    withPlatform("win32", () => expect(() => killTree({ pid: 99_999_999 } as never)).not.toThrow());
+    expect(() => killTree({ pid: 0 })).not.toThrow();
+    expect(() => killTree({ pid: -1 })).not.toThrow();
+    withPlatform("win32", () => expect(() => killTree({ pid: 99_999_999 })).not.toThrow());
   });
   it("runCommand validates its timeout and cwd before spawning a shell", async () => {
     expect(await runCommand("echo hi", 0)).toBe("[error] timeout must be a positive number of seconds (got 0)");
     expect(await runCommand("echo hi", 60, "")).toBe("[error] cwd must be a non-empty string (got )");
-    expect(await runCommand("echo hi", 60, 8 as unknown as string)).toBe("[error] cwd must be a non-empty string (got 8)");
+    expect(await runCommand("echo hi", 60, 8)).toBe("[error] cwd must be a non-empty string (got 8)");
   });
   it("schema rejects an invalid timeout before runCommand is reached", async () => {
     await expect(callTool(runCommandTool, { command: "echo hi", timeout: 0 })).rejects.toThrow();
@@ -97,12 +98,13 @@ describe("platform and keys", () => {
     expect(withEnv({ USER: undefined, USERNAME: undefined }, describePlatform)).toContain("User: unknown");
   });
   it("listKeyNames only lists names that exist in this nut.js build", () => {
-    const names = listKeyNames({ Key: { Return: 1, A: 2 } } as never);
+    const names = listKeyNames({ Key: { Return: 1, A: 2 } });
     expect(names).toEqual(["enter", "return", "a"]);
   });
   it("canConnect times out on a socket that never answers", async () => {
     const fake = { setTimeout: (_ms: number, cb: () => void) => cb(), once: () => fake, destroy: () => {} };
-    expect(await canConnect("/x", 5, (() => fake) as never)).toBe(false);
+    const fakeConnect = (() => fake) as (options: { path: string }) => { setTimeout(ms: number, cb: () => void): void; once(event: string, cb: (...a: unknown[]) => void): unknown; destroy(): void };
+    expect(await canConnect("/x", 5, fakeConnect)).toBe(false);
   });
 });
 
@@ -268,7 +270,7 @@ describe("agent: default client and permission policy", () => {
   it("routes approvals to the confirm callback; with none, nobody can be asked", async () => {
     const mk = (confirm?: (n: string) => boolean) => {
       const engine = new PermissionEngine(PolicySchema.parse({ name: "ask-all", default: "ask" }));
-      return new Agent({ client: scripted([[use("a", "run_command", { command: "echo approved" })], [{ type: "text", text: "ok" }]]), search: false, policy: engine, confirm: confirm as never });
+      return new Agent({ client: scripted([[use("a", "run_command", { command: "echo approved" })], [{ type: "text", text: "ok" }]]), search: false, policy: engine, confirm });
     };
     const yes = mk(() => true);
     await yes.run("x");

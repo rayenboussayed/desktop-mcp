@@ -37,6 +37,23 @@ export function __setEnv(env: NodeJS.ProcessEnv | undefined): void {
   envSource = env ? () => env : () => process.env;
 }
 
+/** The minimal socket surface `canConnect` relies on. */
+interface MiniSocket {
+  destroy(): void;
+  setTimeout(ms: number, cb: () => void): void;
+  once(event: string, cb: (...a: unknown[]) => void): unknown;
+}
+
+/**
+ * Connect through Node's `net` module, viewed as the minimal socket surface.
+ * @param options - Connection options.
+ * @param options.path - Unix socket path.
+ * @returns The connected socket.
+ */
+function defaultConnect(options: { path: string }): MiniSocket {
+  return createConnection(options) as MiniSocket;
+}
+
 /**
  * Can we actually connect to the X server's unix socket? (A crashed Xvfb leaves a stale socket file behind.)
  * @param socketPath - Unix socket path.
@@ -44,7 +61,7 @@ export function __setEnv(env: NodeJS.ProcessEnv | undefined): void {
  * @param connect - Socket connect implementation.
  * @returns Whether the socket accepted a connection.
  */
-export function canConnect(socketPath: string, timeoutMs = 1000, connect: typeof createConnection = createConnection): Promise<boolean> {
+export function canConnect(socketPath: string, timeoutMs = 1000, connect: (options: { path: string }) => MiniSocket = defaultConnect): Promise<boolean> {
   return new Promise((resolve) => {
     const sock = connect({ path: socketPath });
     const done = (ok: boolean): void => {

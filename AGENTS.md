@@ -136,3 +136,22 @@ entries; if a later entry corrects one, add a new entry referencing the earlier 
 - Repo state for the current run: typecheck, lint, 447 tests passed / 1 skipped,
   knip, and build all succeeded before this entry was appended.
 
+
+### 2026-10-31 — removed all `as any`/`as unknown`/`as never` casts
+
+- Removed all 33 `as any|unknown|never` casts from `src/` and `tests/`.
+- Loosened helper parameter types: `killTree(child: KillableChild)`, `runCommand(..., cwd?: unknown)`,
+  `keyFromName(n: KeySource)`, `listKeyNames(n: KeySource)`, `toolNameMap(messages: unknown)`.
+- `canConnect` now uses a `MiniSocket` interface with a `defaultConnect` wrapper instead of
+  a cast-locked `connect` parameter (JSDoc fixed to satisfy `--max-warnings 0`).
+- `exec.ts` still falls back to `child.kill("SIGKILL")` when `process.kill` throws.
+- Updated tests to `Object.assign({} as Nut, …)` mocks, `toShot` helpers, explicit typed finder aliases,
+  and interface-based fake connect. Added a `killTree({ pid: 4_194_000 })` case to cover the no-fallback branch.
+- Verified with a temporary X11 stack mounted at `/tmp/opencode/x11prefix` (the user had removed the
+  `~/.local/opt/omcps-x11` prefix; `/tmp/opencode` was used so nothing was installed into `$HOME`).
+- Verification: `PATH=/tmp/opencode/x11prefix/usr/bin:$PATH
+  LD_LIBRARY_PATH=/tmp/opencode/x11prefix/usr/lib64
+  XDG_DATA_DIRS=/tmp/opencode/x11prefix/usr/share:/usr/share
+  npm run check` -> typecheck (0), lint (0), 467 passed/1 skipped, 100% coverage, knip, build all green.
+- Limitation: machine X11 toolchain was re-extracted into `/tmp/opencode/x11prefix` for this check because
+  the user removed `~/.local/opt/omcps-x11`; re-run the same env exports to reproduce.

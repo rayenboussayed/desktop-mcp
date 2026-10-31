@@ -98,7 +98,7 @@ function integer(v: FlagValues, name: string): number | undefined {
  */
 export function anyPermissionFlag(v: FlagValues): boolean {
   // eslint-disable-next-line security/detect-object-injection
-  return Object.keys(FLAG_OPTIONS).some((k) => (Array.isArray(v[k]) ? (v[k] as unknown[]).length > 0 : v[k] !== undefined && v[k] !== false));
+  return Object.keys(FLAG_OPTIONS).some((k) => (Array.isArray(v[k]) ? v[k].length > 0 : v[k] !== undefined && v[k] !== false));
 }
 
 export interface FlagPolicy {

@@ -13,8 +13,15 @@ import { callTool } from "../../src/tools/base.js";
 import { hasBinary, sleep, startXvfb, tmpDir, withEnv, withPlatform, type Xvfb } from "../helpers.js";
 
 type Nut = typeof import("@nut-tree-fork/nut-js");
+import type { ToolResult } from "../../src/tools/base.js";
 type Shot = [{ text: string }, { source: { data: string } }];
-const shot = async (w?: number): Promise<Shot> => (await gui.screenshot(w)) as unknown as Shot;
+const toShot = (r: ToolResult): Shot => {
+  if (typeof r === "string") throw new Error("expected image blocks");
+  const [text, image] = r;
+  if (!text || text.type !== "text" || !image || image.type !== "image") throw new Error("expected text and image blocks");
+  return [{ text: text.text }, { source: { data: image.source.data } }];
+};
+const shot = async (w?: number): Promise<Shot> => toShot(await gui.screenshot(w));
 let x: Xvfb | undefined;
 const haveX = hasBinary("Xvfb") && hasBinary("xev");
 
@@ -343,7 +350,8 @@ describe.skipIf(!haveX)("desktop control against a real X server", () => {
     await expect(callTool(byName.click!, { x: "a", y: 1 })).rejects.toThrow();
     await expect(callTool(byName.click!, { x: 1, y: 1, button: "side" })).rejects.toThrow();
     await expect(callTool(byName.press_key!, { keys: [] })).rejects.toThrow();
-    const shot = (await callTool(byName.screenshot!, {})) as unknown[];
+    const shot = await callTool(byName.screenshot!, {});
+    expect(Array.isArray(shot)).toBe(true);
     expect(shot).toHaveLength(2);
   });
 });
@@ -352,12 +360,12 @@ describe("HiDPI scale is relative to logical pixels (fake nut with a 2x display)
   it("reports image scale against the logical screen, not the captured pixels", async () => {
     const real = await import("@nut-tree-fork/nut-js");
     const png = new Jimp(2560, 1600, 0xffffffff); // captured at 2x
-    const fake = {
+    const fake = Object.assign({} as Nut, {
       ...real,
       mouse: { ...real.mouse, config: { autoDelayMs: 0, mouseSpeed: 0 }, getPosition: async () => ({ x: 500, y: 500 }) },
       screen: { grab: async () => ({}), width: async () => 1280, height: async () => 800 },
       imageToJimp: async () => png,
-    } as unknown as Nut;
+    });
     await withPlatform("darwin", async () => {
       gui.__setNutLoader(async () => fake);
       const [text] = await shot(1280);

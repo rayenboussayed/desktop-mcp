@@ -21,24 +21,26 @@ export interface ExecResult {
 
 const MAX_CAPTURE = 8 * 1024 * 1024;
 
+/** The minimal child-process surface `killTree` needs. */
+interface KillableChild {
+  pid?: number;
+  kill?: (signal?: number | NodeJS.Signals) => unknown;
+}
+
 /**
- *
  * @param child - Child process to terminate.
  */
-export function killTree(child: ChildProcess): void {
-  if (child.pid === undefined || !Number.isInteger(child.pid) || child.pid <= 0) return;
+export function killTree(child: KillableChild): void {
+  const pid = child.pid;
+  if (typeof pid !== "number" || !Number.isInteger(pid) || pid <= 0) return;
   try {
     if (process.platform === "win32") {
-      spawn("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore", windowsHide: true }).on("error", () => {});
+      spawn("taskkill", ["/pid", String(pid), "/T", "/F"], { stdio: "ignore", windowsHide: true }).on("error", () => {});
     } else {
-      process.kill(-child.pid, "SIGKILL"); // negative pid = the whole process group (we spawn detached)
+      process.kill(-pid, "SIGKILL"); // negative pid = the whole process group (we spawn detached)
     }
   } catch {
-    try {
-      child.kill("SIGKILL");
-    } catch {
-      /* already gone */
-    }
+    if (typeof child.kill === "function") try { child.kill("SIGKILL"); } catch { /* already gone */ }
   }
 }
 

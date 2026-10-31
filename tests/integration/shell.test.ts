@@ -67,6 +67,6 @@ describe("run_command (real subprocesses)", () => {
   });
 
   it("reports an internal failure while building the process call as a tool error", async () => {
-    expect(await runCommand("echo hi", 10, 5 as never)).toContain("[error]"); // cwd is not a string
+    expect(await runCommand("echo hi", 10, 5)).toContain("[error]"); // cwd is not a string
   });
 });

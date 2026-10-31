@@ -10,12 +10,12 @@ import { defineTool, truncate } from "./base.js";
  * @param cwd - Working directory for the command.
  * @returns A human-readable result.
  */
-export async function runCommand(command: string, timeout = 60, cwd?: string): Promise<string> {
+export async function runCommand(command: string, timeout = 60, cwd?: unknown): Promise<string> {
   if (!Number.isInteger(timeout) || timeout < 1) return `[error] timeout must be a positive number of seconds (got ${timeout})`;
   if (cwd !== undefined && (typeof cwd !== "string" || cwd === "")) return `[error] cwd must be a non-empty string (got ${String(cwd)})`;
   const r = currentOs() === "windows"
     ? await execText("powershell", ["-NoProfile", "-NonInteractive", "-Command", command], {
-        cwd: cwd ? expandUser(cwd) : undefined,
+        cwd: typeof cwd === "string" ? expandUser(cwd) : undefined,
         timeoutMs: timeout * 1000,
       })
     : await execText(command, [], { shell: true, cwd: cwd ? expandUser(cwd) : undefined, timeoutMs: timeout * 1000 });

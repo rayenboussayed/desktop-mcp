@@ -40,16 +40,16 @@ async function fakeNut(over: { titles?: Record<number, string>; handles?: number
     async minimize() { calls.push(["minimize", this.windowHandle]); }
     async restore() { calls.push(["restore", this.windowHandle]); }
   }
-  return {
+  return Object.assign({} as Nut, {
     ...real,
     Window: FakeWindow,
-    providerRegistry: {},
+    providerRegistry: real.providerRegistry,
     getWindows: async () => (typeof over.handles === "function" ? over.handles() : (over.handles ?? [1, 2, 3, 4])).map((h) => new FakeWindow({}, h)),
     getActiveWindow: async () => new FakeWindow({}, over.active ?? 2),
     keyboard: { config: {}, pressKey: async (...k: number[]) => void pressed.push(...k), releaseKey: async () => {}, type: async (t: string) => void calls.push(["type", t]) },
     mouse: { config: {}, getPosition: async () => ({ x: 500, y: 500 }), scrollRight: async (n: number) => void calls.push(["right", n]), scrollLeft: async (n: number) => void calls.push(["left", n]), scrollUp: async () => {}, scrollDown: async () => {} },
     screen: { width: async () => 1280, height: async () => 800 },
-  } as unknown as Nut;
+  });
 }
 /**
  *

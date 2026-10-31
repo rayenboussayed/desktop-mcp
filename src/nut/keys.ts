@@ -23,23 +23,27 @@ const NAMED_KEYS: Record<string, string> = {
   media_rewind: "AudioRewind", media_forward: "AudioForward",
 };
 
+/** The minimal nut.js surface key lookup needs. */
+interface KeySource {
+  Key: object;
+}
+
 /**
  * Map a key name ('enter', 'ctrl', 'c', 'f5', '7', 'volume_up', 'kp_5') to a nut.js `Key`.
  * @param n - Nut.js module.
  * @param name - Key name to resolve.
  * @returns The nut.js key code.
  */
-export function keyFromName(n: Nut, name: string): number {
+export function keyFromName(n: KeySource, name: string): number {
   const k = name.trim().toLowerCase();
-  const table = n.Key as unknown as Record<string, number | undefined>;
   // eslint-disable-next-line security/detect-object-injection
   let member: string | undefined = NAMED_KEYS[k];
   if (!member && /^[a-z]$/.test(k)) member = k.toUpperCase();
   else if (!member && /^[0-9]$/.test(k)) member = `Num${k}`; // top-row digits (NumPadN is the keypad)
   else if (!member && /^kp_[0-9]$/.test(k)) member = `NumPad${k.slice(3)}`;
   else if (!member && /^f([1-9]|1\d|2[0-4])$/.test(k)) member = k.toUpperCase();
-  // eslint-disable-next-line security/detect-object-injection
-  const value = member === undefined ? undefined : table[member];
+  const raw: unknown = member === undefined ? undefined : Reflect.get(n.Key, member);
+  const value = typeof raw === "number" ? raw : undefined;
   if (value === undefined) throw new Error(`unknown key '${name}'`);
   return value;
 }
@@ -49,7 +53,7 @@ export function keyFromName(n: Nut, name: string): number {
  * @param n - Nut.js module.
  * @returns Every supported key name.
  */
-export function listKeyNames(n: Nut): string[] {
+export function listKeyNames(n: KeySource): string[] {
   const names = [
     ...Object.keys(NAMED_KEYS),
     ..."abcdefghijklmnopqrstuvwxyz0123456789".split(""),

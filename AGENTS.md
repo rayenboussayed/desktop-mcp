@@ -24,7 +24,7 @@ a per-feature permission flag system plus a high-risk tool confirmation step.
 - `npm run check` — `typecheck -> lint -> test -> knip -> build`. **Must be green with
   zero errors and zero warnings before you consider your work done.**
 
-Version (`package.json`): `1.0.0`.
+Version (`package.json`): `1.0.1`.
 
 ## Architecture (quick map)
 
@@ -193,3 +193,17 @@ entries; if a later entry corrects one, add a new entry referencing the earlier 
 - The previous note referred to code commit `5d8d2a2`; this documentation update is
   committed separately as `1ff9a91`. `main` and `origin/main` remain clean and aligned.
 - All repository-state statements in this session remain accurate.
+
+### 2026-11-03 — version bump to 1.0.1
+
+- Bumped `package.json` from `1.0.0` to `1.0.1` so the post-publish source changes can be
+  released without re-uploading the existing npm tag.
+- Updated the documented current version references in `AGENTS.md` and `docs/README.md`,
+  including the tarball example in `README.md`.
+- Verification: `PATH=/tmp/opencode/x11prefix/usr/bin:$PATH
+  LD_LIBRARY_PATH=/tmp/opencode/x11prefix/usr/lib64
+  XDG_DATA_DIRS=/tmp/opencode/x11prefix/usr/share:/usr/share
+  npm run check` passed with 467 tests, 1 skip, 100% coverage, clean knip/lint/typecheck/build.
+- The prior temporary `/tmp/opencode/x11prefix` was rebuilt from the Fedora RPMs after that
+  environment was cleaned. `~/.local/opt/omcps-x11` remains removed, so the check depends
+  on the extracted `/tmp` stack until it is recreated.

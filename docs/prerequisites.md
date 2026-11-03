@@ -49,6 +49,10 @@ Other distributions have equivalent packages. The official nut.js dependency is 
 - On Wayland compositors, log in to an X11 session or use XWayland where possible.
 - For window control and reliable screenshots, an X11 display and usually an EWMH
   window manager are required.
+- Missing everyday X11 helpers do not crash the server; the affected GUI tool reports
+  an error and non-GUI tools keep working.
+- A virtual X session such as `Xvfb` is supported for testing or server-side manual use;
+  provide a real display and, for window management, an EWMH-capable window manager.
 
 `desktop-mcp` additionally uses these Linux tools:
 

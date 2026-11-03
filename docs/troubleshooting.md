@@ -9,7 +9,17 @@ Xvfb :99 -screen 0 1280x800x24 &
 export DISPLAY=:99
 ```
 
-Wayland-only sessions are not supported by nut.js.
+Wayland-only sessions are not supported by nut.js. GUI tool calls return an explicit X11
+error instead of crashing the process.
+
+## X11 runtime problems
+
+- On Wayland-only or display-less sessions, GUI tool calls may report that desktop-mcp
+  does not support that runtime; non-GUI tools still run.
+- If X11 environment variables point to a dead display or Xvfb exits, capture and
+  input actions fail; restart the display or select another `DISPLAY`.
+- Xvfb itself is only a display, not a window manager. Window-management features may
+  need an EWMH-capable window manager such as Openbox in the same session.
 
 ## Nut.js cannot find modules
 

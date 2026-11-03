@@ -15,17 +15,18 @@ The check chain is `typecheck -> lint -> test -> knip -> build`.
 
 ## requirements for full coverage
 
-Full coverage needs a private X stack:
+Full coverage needs a real or virtual X stack on Linux:
 
 ```bash
-export PATH=/tmp/opencode/x11prefix/usr/bin:$PATH
-export LD_LIBRARY_PATH=/tmp/opencode/x11prefix/usr/lib64
-export XDG_DATA_DIRS=/tmp/opencode/x11prefix/usr/share:/usr/share
+Xvfb :99 -screen 0 1280x800x24 &
+export DISPLAY=:99
 npm run check
 ```
 
-See [prerequisites](./prerequisites.md). On this repository, Linux X tooling is available through
-wrappers in `~/.local/bin`.
+The full suite is not mocked: GUI paths run under a real X server started by
+`tests/globalSetup.ts`. Xvfb alone covers many paths; window-management tests benefit
+from an EWMH-capable window manager such as Openbox. The suite creates and removes
+its own display, so do not point it at a live desktop.
 
 ## Test layout
 

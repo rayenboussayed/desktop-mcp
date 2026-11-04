@@ -207,3 +207,21 @@ entries; if a later entry corrects one, add a new entry referencing the earlier 
 - The prior temporary `/tmp/opencode/x11prefix` was rebuilt from the Fedora RPMs after that
   environment was cleaned. `~/.local/opt/omcps-x11` remains removed, so the check depends
   on the extracted `/tmp` stack until it is recreated.
+
+### 2026-11-04 — CLI parser migrated to Commander; zod/compile enabled
+
+- `src/cli.ts` (osagent) and `src/mcpServer.ts` (desktop-mcp) now parse flags with
+  `commander` instead of `node:util.parseArgs`.
+- `import "zod/compile";` is placed first in every file that defines or consumes
+  runtime validation schemas, including the two bins and `tests/globalSetup.ts`.
+- Permission flags are registered by the shared helper `addPermissionOptions()` in
+  `src/policy/flags.ts`; keys are normalized with `toKebabOptions()` so the policy
+  layer still reads kebab-case names.
+- Source still carries no `as any` / `as unknown` / `as never` casts under `src/` or
+  `tests/`.
+- Current check status: typecheck/lint/knip/build clean; 466 passed / 1 skipped;
+  100% coverage for statements/branches/functions/lines.
+- Known ongoing flake: `tests/e2e/gui.test.ts` "pastes non-ASCII text via the
+  clipboard, then restores it" has failed intermittently under the extracted Xvfb
+  stack. The failure is unrelated to the CLI parser refactor; non-ASCII clipboard
+  content restoration depends on Xvfb/xclip timing.

@@ -208,14 +208,12 @@ Safety nets for flag-only setups (opt out when you mean it):
  * @returns Kebab-case keyed record.
  */
 export function toKebabOptions(raw: Record<string, unknown>): Record<string, unknown> {
-  /* v8 ignore start */
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(raw)) {
      
     out[k.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase()] = v;
   }
   return out;
-/* v8 ignore stop */
 }
 
 /**
@@ -237,7 +235,6 @@ export function addPermissionOptions(program: Command): void {
     .option("--audit-file <path>", "JSON-lines audit log file")
     .option("--audit-args", "also record argument values", false)
     .option("--ask-fallback <mode>", "allow|deny when nobody can be asked");
-  /* v8 ignore start -- generated from the GROUPS/SCOPES tables; exercised end-to-end by the CLI tests */
   for (const g of Object.keys(GROUPS)) {
     // eslint-disable-next-line security/detect-object-injection
     program.option(`--allow-${g}`, GROUPS[g]?.doc ?? g, false);
@@ -246,5 +243,4 @@ export function addPermissionOptions(program: Command): void {
   for (const [name, doc] of Object.entries(SCOPES)) {
     program.option(`--${name} <value>`, doc, (value: string, previous: string[] | undefined) => [...(previous ?? []), value], []);
   }
-  /* v8 ignore stop */
 }

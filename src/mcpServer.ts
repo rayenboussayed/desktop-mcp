@@ -276,6 +276,13 @@ export interface MainIo {
  * @param io - I/O overrides.
  * @returns The process exit code.
  */
+
+/**
+ *
+ * @param argv - Command-line arguments.
+ * @param io - I/O overrides.
+ * @returns The process exit code.
+ */
 const HELP = `desktop-mcp - an MCP server that lets an AI use your computer: shell, files, clipboard, mouse, keyboard,
 screen (OCR, image and colour search), windows. Everything runs locally; only web_search/fetch_url touch the network.
 
@@ -305,8 +312,8 @@ export async function main(argv: string[] = process.argv.slice(2), io: MainIo = 
   const program = new Command();
   program.exitOverride();
   program.name("desktop-mcp");
-  program.usage("[options]");
-  program.option("--transport <mode>", "stdio | streamable-http", "stdio");
+  program.usage("[options]          (e.g.  npx desktop-mcp@latest --allow-all)");
+program.option("--transport <mode>", "stdio | streamable-http", "stdio");
   program.option("--host <h>", "interface to bind", "127.0.0.1");
   program.option("--port <n>", "port for http", "8000");
   program.option("--gui", "force desktop tools on", false);
@@ -316,6 +323,7 @@ export async function main(argv: string[] = process.argv.slice(2), io: MainIo = 
   program.helpOption("-h, --help", "show help");
   addPermissionOptions(program);
   program.configureOutput({
+    writeOut: (str) => console.log(str),
     writeErr: (str) => console.error(str.trimEnd()),
   });
 
@@ -326,17 +334,10 @@ export async function main(argv: string[] = process.argv.slice(2), io: MainIo = 
      
     values = toKebabOptions(raw);
   } catch (e) {
-    /* v8 ignore start */
-    if (e instanceof CommanderError) {
-      if (e.code === "commander.helpDisplayed") return 0;
-      return 2;
-    }
-    /* v8 ignore stop */
-    /* v8 ignore start */
+    if (e instanceof CommanderError) return 2;
     const msg = e instanceof Error ? e.message : String(e);
     console.error(`desktop-mcp: ${msg}`);
     return 2;
-    /* v8 ignore stop */
   }
 
   if (values.version === true) {
@@ -355,10 +356,8 @@ export async function main(argv: string[] = process.argv.slice(2), io: MainIo = 
     hint = !p.hasBase && p.granted.length === 0;
     engine = new PermissionEngine(p.policy, { activeWindowTitle: activeTitle });
   } catch (e) {
-    /* v8 ignore start */
     console.error(`desktop-mcp: ${e instanceof PolicyError ? e.message : (e instanceof Error ? e.message : String(e))}`);
     return 2;
-    /* v8 ignore stop */
   }
   const desktop = values.gui === true || (await desktopTools()).some((t) => engine.isVisible(t.name));
   const opts: ServerOptions = { engine, gui: desktop, searchTools: values.search !== false };

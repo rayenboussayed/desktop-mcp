@@ -55,6 +55,21 @@ function defaultConnect(options: { path: string }): MiniSocket {
 }
 
 /**
+ * Parse a local X display number from DISPLAY (e.g. ":0" or ":2.1").
+ * @param display - DISPLAY environment variable value.
+ * @returns The display number, or `undefined` when DISPLAY is not in the local `:n[.m]` form.
+ */
+export function parseLocalDisplay(display: string): number | undefined {
+  if (!display.startsWith(":")) return undefined;
+  const rest = display.slice(1);
+  const dot = rest.indexOf(".");
+  const num = dot === -1 ? rest : rest.slice(0, dot);
+  if (num.length === 0 || [...num].some((c) => c < "0" || c > "9")) return undefined;
+  const n = Number.parseInt(num, 10);
+  return Number.isInteger(n) ? n : undefined;
+}
+
+/**
  * Can we actually connect to the X server's unix socket? (A crashed Xvfb leaves a stale socket file behind.)
  * @param socketPath - Unix socket path.
  * @param timeoutMs - Timeout in milliseconds.
@@ -92,9 +107,8 @@ export async function assertDisplay(env: NodeJS.ProcessEnv = envSource(), platfo
         "display (e.g. `xvfb-run desktop-mcp --allow-all`). Wayland-only sessions are not supported.",
     );
   }
-  // eslint-disable-next-line security/detect-unsafe-regex
-  const local = /^:(\d+)(\.\d+)?$/.exec(display);
-  if (local && !(await canConnect(`/tmp/.X11-unix/X${local[1]}`))) {
+  const local = parseLocalDisplay(display);
+  if (local !== undefined && !(await canConnect(`/tmp/.X11-unix/X${local}`))) {
     throw new Error(
       `GUI tools need an X11 display, but nothing is accepting connections on DISPLAY=${display} ` +
         "(no X server, or it crashed and left a stale socket). Start Xvfb or fix DISPLAY.",

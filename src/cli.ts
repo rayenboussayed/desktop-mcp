@@ -130,25 +130,20 @@ export async function main(argv: string[] = process.argv.slice(2), io?: Partial<
   program.configureOutput({ writeErr: (s) => console.error(s.trimEnd()) });
 
   let parsed: Record<string, unknown>;
-  // eslint-disable-next-line no-useless-assignment
-  let positionals: string[] = [];
+  let positionals: string[];
   try {
     program.parse(argv, { from: "user" });
     const raw = program.opts<Record<string, unknown>>();
     parsed = toKebabOptions(raw);
     positionals = program.args;
   } catch (e) {
-    /* v8 ignore start */
     if (e instanceof CommanderError) {
       if (e.code === "commander.helpDisplayed") return 0;
       return 2;
     }
-    /* v8 ignore stop */
-    /* v8 ignore start */
     const msg = e instanceof Error ? e.message : String(e);
     console.error(`osagent: ${msg}`);
     return 2;
-    /* v8 ignore stop */
   }
 
   if (parsed.info === true) {
@@ -156,35 +151,26 @@ export async function main(argv: string[] = process.argv.slice(2), io?: Partial<
     return 0;
   }
   const maxStepsRaw = parsed["max-steps"];
-  // eslint-disable-next-line no-useless-assignment
-  let maxSteps = 40;
+  let maxSteps: number;
   try {
-    /* v8 ignore start */
     maxSteps = MaxStepsSchema.parse(maxStepsRaw ?? "40");
-    /* v8 ignore stop */
   } catch {
-    /* v8 ignore start */
     console.error("osagent: --max-steps must be a positive integer");
     return 2;
-    /* v8 ignore stop */
   }
   let engine: PermissionEngine | undefined;
   if (anyPermissionFlag(parsed as FlagValues) || parsed["policy-show"] === true) {
     try {
       engine = new PermissionEngine((await policyFromFlags(parsed as FlagValues)).policy);
     } catch (e) {
-      /* v8 ignore start */
       console.error(`osagent: ${e instanceof PolicyError ? e.message : (e instanceof Error ? e.message : String(e))}`);
       return 2;
-      /* v8 ignore stop */
     }
     if (parsed["policy-show"] === true) {
-      /* v8 ignore start */
       const { buildToolset } = await import("./tools/index.js");
       const e = engine;
       out(e.describe([...(await buildToolset(parsed.gui === true, parsed.search !== false)).values()].filter((t) => e.isVisible(t.name))));
       return 0;
-      /* v8 ignore stop */
     }
   }
   const reader = io?.prompt ? undefined : makeLineReader(io?.input, io?.output);
@@ -195,9 +181,7 @@ export async function main(argv: string[] = process.argv.slice(2), io?: Partial<
       return ["y", "yes"].includes(((await prompt("Allow? [y/N] ")) ?? "").trim().toLowerCase());
     };
     const create = io?.createAgent ?? ((o: AgentOptions): Runnable => new Agent(o));
-    /* v8 ignore start */
     const model = (parsed.model as string) ?? DEFAULT_MODEL;
-    /* v8 ignore stop */
     const agent = create({
       model,
       gui: parsed.gui === true,

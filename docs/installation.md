@@ -14,12 +14,12 @@ npx desktop-mcp@latest --allow-all
 
 ### From a local tarball
 
-Until the package is published, install from the locally built tarball:
+The registry currently publishes `1.0.1`. To use the unreleased `1.0.2` source build:
 
 ```bash
 npm run build
 npm pack
-npx --package=./desktop-mcp-1.0.0.tgz desktop-mcp --allow-all
+npx --package=./desktop-mcp-1.0.2.tgz desktop-mcp --allow-all
 ```
 
 ### From source

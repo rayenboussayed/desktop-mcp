@@ -21,8 +21,8 @@ and those are off unless you allow them.
 - [Quick start](./quick-start.md)
 - [CLI reference](./cli.md)
 - [Permissions model](./permissions.md)
-- [Configuration files](./configuration.md)
 - [Tools reference](./tools.md)
+- [Changelog](../CHANGELOG.md)
 - [Platform support](./platform-support.md)
 - [OCR, image and colour search](./ocr-image-colour.md)
 - [Recording](./recording.md)
@@ -42,5 +42,5 @@ file before giving broad access.
 
 ## Current version
 
-The documented version is `1.0.1`. See `package.json` and `CHANGELOG`/release notes for
-exact changes.
+The documented version is `1.0.2`. See `package.json` and [CHANGELOG.md](../CHANGELOG.md)
+for exact changes. The npm registry is a step behind the source until `1.0.2` is published.

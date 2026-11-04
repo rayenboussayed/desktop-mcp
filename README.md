@@ -37,8 +37,9 @@ The same pattern as other npx-based MCP servers: the command is `npx`, the flags
 Run it as an HTTP server instead of stdio: `npx desktop-mcp@latest --allow-all --transport streamable-http --port 8000`
 (`http://127.0.0.1:8000/mcp`; binds to localhost and rejects foreign `Host` headers).
 
-> The package is named `desktop-mcp`; until it is published to the npm registry, install from the tarball:
-> `npx --package=./desktop-mcp-1.0.1.tgz desktop-mcp --allow-all`.
+> The registry currently publishes `desktop-mcp@1.0.1`. Build and pack at `1.0.2` to include the CLI/schema work:
+> `npm pack` then `npx --package=./desktop-mcp-1.0.2.tgz desktop-mcp --allow-all`.
+> See [Changelog](./CHANGELOG.md) for release notes.
 
 ## Permissions
 

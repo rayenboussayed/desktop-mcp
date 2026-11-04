@@ -24,7 +24,7 @@ a per-feature permission flag system plus a high-risk tool confirmation step.
 - `npm run check` — `typecheck -> lint -> test -> knip -> build`. **Must be green with
   zero errors and zero warnings before you consider your work done.**
 
-Version (`package.json`): `1.0.1`.
+Version (`package.json`): `1.0.2`.
 
 ## Architecture (quick map)
 
@@ -225,3 +225,15 @@ entries; if a later entry corrects one, add a new entry referencing the earlier 
   clipboard, then restores it" has failed intermittently under the extracted Xvfb
   stack. The failure is unrelated to the CLI parser refactor; non-ASCII clipboard
   content restoration depends on Xvfb/xclip timing.
+
+### 2026-11-04 — docs synchronized with 1.0.2 source-only release
+
+- Updated `README.md` and `docs/` to state that `desktop-mcp@1.0.1` is the latest
+  published npm release and `1.0.2` is a source build that is not on the registry.
+- Added `CHANGELOG.md` and replaced references to a non-existent `configuration.md`
+  with the actual permissions page and a changelog link.
+- Corrected two stale Anthropic SDK references in the architecture and prerequisites
+  docs; the standalone agent uses the optional `ollama` peer.
+- Updated the documented current version to `1.0.2` in `AGENTS.md` and `docs/README.md`.
+- Updated tarball examples to `desktop-mcp-1.0.2.tgz` and npm/source wording in the Installation page.
+- This pass is docs-only; no `.ts` source or test behavior changed.

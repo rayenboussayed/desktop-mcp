@@ -8,7 +8,7 @@
 4. tools: source modules in `src/tools/*`
 5. native subsystems: nut.js, screen, clipboard, files
 6. optional plugins: matchers, OCR, colour, OCR provider state
-7. standalone agent `osagent`, optional Anthropic SDK
+7. standalone agent `osagent`, optional `ollama` peer
 
 ## Main modules
 

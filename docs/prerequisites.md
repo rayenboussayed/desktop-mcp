@@ -87,5 +87,5 @@ optional dependency. If it is missing, the server still runs for non-GUI feature
   as optional dependencies. They do not download data at runtime.
 - Optional image-processing dependency: `jimp`.
 - Optional recording converter: `ffmpeg` (MP4 output; PNG frames work without it).
-- Anthropic SDK is optional and only used by the standalone `osagent` command, not
+- Optional `ollama` peer is used only by the standalone `osagent` command, not
   by the MCP server.

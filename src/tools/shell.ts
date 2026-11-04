@@ -1,3 +1,4 @@
+import "zod/compile";
 import { z } from "zod";
 import { execText, signalCode } from "../exec.js";
 import { currentOs, expandUser } from "../platform.js";

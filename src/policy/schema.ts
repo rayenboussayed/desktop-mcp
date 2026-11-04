@@ -1,3 +1,4 @@
+import "zod/compile";
 /** The permission policy: what the AI may and may not control on this machine. */
 import { z } from "zod";
 

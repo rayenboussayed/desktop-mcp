@@ -1,3 +1,4 @@
+import "zod/compile";
 /** Clipboard features beyond get/set: clear, copy-the-selection, paste-text (nut.js `clipboard` + keyboard). */
 import { z } from "zod";
 import { failsafe, nut, sleep } from "../nut/runtime.js";

@@ -1,3 +1,4 @@
+import "zod/compile";
 /**
  * Desktop control through nut.js (https://nutjs.dev): mouse, keyboard and screen. Windows, clipboard and the
  * plugin-style features (image matching, OCR, ...) live in their own modules. See src/nut/runtime.ts for the

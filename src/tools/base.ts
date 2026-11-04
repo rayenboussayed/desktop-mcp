@@ -1,3 +1,4 @@
+import "zod/compile";
 import { z } from "zod";
 
 type TextBlock = { type: "text"; text: string };

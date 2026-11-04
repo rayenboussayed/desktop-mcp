@@ -1,3 +1,4 @@
+import "zod/compile";
 /**
  * Screen understanding tools: image matching, OCR, AI location, recording and plugin status. These are the
  * open-source counterparts of nut.js' plugin-based features (see src/plugins/status.ts for the full mapping).

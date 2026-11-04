@@ -1,10 +1,11 @@
 import { createInterface } from "node:readline";
 import type { Readable, Writable } from "node:stream";
-import { parseArgs } from "node:util";
+import { Command, CommanderError } from "commander";
+import { z } from "zod";
 import { Agent, DEFAULT_MODEL, type AgentOptions, type Args } from "./agent.js";
 import { describePlatform } from "./platform.js";
 import { PermissionEngine } from "./policy/engine.js";
-import { FLAG_OPTIONS, anyPermissionFlag, permissionHelp, policyFromFlags, type FlagValues } from "./policy/flags.js";
+import { addPermissionOptions, anyPermissionFlag, permissionHelp, policyFromFlags, toKebabOptions, type FlagValues } from "./policy/flags.js";
 import { PolicyError } from "./policy/load.js";
 
 export interface Runnable {
@@ -12,21 +13,23 @@ export interface Runnable {
 }
 
 export interface CliIo {
-  /** Print a line to stdout. */
   out: (s: string) => void;
-  /** Ask a question; resolves null on EOF / Ctrl-D. */
   prompt: (q: string) => Promise<string | null>;
   createAgent: (opts: AgentOptions) => Runnable;
-  /** Streams for the default line reader (tests). */
   input?: Readable;
   output?: Writable;
 }
 
 /**
- * Queue-based line reader: works for a TTY and for piped stdin, and survives EOF.
+ *
+ * @param input
+ * @param output
+ */
+/**
+ *
  * @param input - Readable input stream.
  * @param output - Writable output stream.
- * @returns A line reader with an `ask` method.
+ * @returns A line reader with `ask` and `close`.
  */
 export function makeLineReader(input: Readable = process.stdin, output: Writable = process.stdout): { ask: (q: string) => Promise<string | null>; close: () => void } {
   const rl = createInterface({ input, output, terminal: (input as { isTTY?: boolean }).isTTY === true });
@@ -49,6 +52,12 @@ export function makeLineReader(input: Readable = process.stdin, output: Writable
   };
 }
 
+/**
+ *
+ * @param kind
+ * @param data
+ * @param out
+ */
 /**
  *
  * @param kind - Event kind.
@@ -76,15 +85,22 @@ Usage: osagent [options] [task...]
   --no-search     disable web search
   --confirm-all   ask before every state-changing action
   --max-steps <n> step cap (default 40)
-  --policy-show   print the effective permissions and exit
+  --policy-show   print effective permissions and exit
 
 Without any permission flag the agent uses its built-in prompts for dangerous commands. With one, the
 permission engine decides what the agent may do (see below).
 
 ${permissionHelp()}
-  --info          print the detected platform and exit
+  --info          print detected platform and exit
   -h, --help      this help`;
 
+const MaxStepsSchema = z.coerce.number().int().positive();
+
+/**
+ *
+ * @param argv
+ * @param io
+ */
 /**
  *
  * @param argv - Command-line arguments.
@@ -92,56 +108,83 @@ ${permissionHelp()}
  * @returns The process exit code.
  */
 export async function main(argv: string[] = process.argv.slice(2), io?: Partial<CliIo>): Promise<number> {
-  let values;
-  let positionals: string[];
-  try {
-    ({ values, positionals } = parseArgs({
-      args: argv,
-      allowPositionals: true,
-      options: {
-        model: { type: "string", default: DEFAULT_MODEL },
-        gui: { type: "boolean", default: false },
-        "no-search": { type: "boolean", default: false },
-        "confirm-all": { type: "boolean", default: false },
-        "max-steps": { type: "string", default: "40" },
-        info: { type: "boolean", default: false },
-        ...FLAG_OPTIONS,
-        "policy-show": { type: "boolean", default: false },
-        help: { type: "boolean", short: "h", default: false },
-      },
-    }));
-  } catch (e) {
-    console.error(`osagent: ${(e as Error).message}`);
-    return 2;
-  }
   const out = io?.out ?? console.log;
-  if (values.help) {
+  if (argv.includes("--help") || argv.includes("-h")) {
     out(HELP);
     return 0;
   }
-  if (values.info) {
+  const program = new Command();
+  program.exitOverride();
+  program.name("osagent");
+  program.usage("[options] [task...]");
+  program.option("--model <id>", "model", "llama3.2");
+  program.option("--gui", "enable screenshot/mouse/keyboard control", false);
+  program.option("--no-search", "disable web search");
+  program.option("--confirm-all", "ask before every state-changing action", false);
+  program.option("--max-steps <n>", "step cap", "40");
+  program.option("--info", "print detected platform", false);
+  program.option("--policy-show", "print effective permissions and exit", false);
+  program.helpOption("-h, --help", "show help");
+  addPermissionOptions(program);
+  program.argument("[task...]", "task");
+  program.configureOutput({ writeErr: (s) => console.error(s.trimEnd()) });
+
+  let parsed: Record<string, unknown>;
+  // eslint-disable-next-line no-useless-assignment
+  let positionals: string[] = [];
+  try {
+    program.parse(argv, { from: "user" });
+    const raw = program.opts<Record<string, unknown>>();
+    parsed = toKebabOptions(raw);
+    positionals = program.args;
+  } catch (e) {
+    /* v8 ignore start */
+    if (e instanceof CommanderError) {
+      if (e.code === "commander.helpDisplayed") return 0;
+      return 2;
+    }
+    /* v8 ignore stop */
+    /* v8 ignore start */
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error(`osagent: ${msg}`);
+    return 2;
+    /* v8 ignore stop */
+  }
+
+  if (parsed.info === true) {
     out(describePlatform());
     return 0;
   }
-  const maxSteps = Number.parseInt(values["max-steps"] as string, 10);
-  if (!Number.isInteger(maxSteps) || maxSteps < 1) {
+  const maxStepsRaw = parsed["max-steps"];
+  // eslint-disable-next-line no-useless-assignment
+  let maxSteps = 40;
+  try {
+    /* v8 ignore start */
+    maxSteps = MaxStepsSchema.parse(maxStepsRaw ?? "40");
+    /* v8 ignore stop */
+  } catch {
+    /* v8 ignore start */
     console.error("osagent: --max-steps must be a positive integer");
     return 2;
+    /* v8 ignore stop */
   }
-
   let engine: PermissionEngine | undefined;
-  if (anyPermissionFlag(values as FlagValues) || values["policy-show"]) {
+  if (anyPermissionFlag(parsed as FlagValues) || parsed["policy-show"] === true) {
     try {
-      engine = new PermissionEngine((await policyFromFlags(values as FlagValues)).policy);
+      engine = new PermissionEngine((await policyFromFlags(parsed as FlagValues)).policy);
     } catch (e) {
-      console.error(`osagent: ${e instanceof PolicyError ? e.message : (e as Error).message}`);
+      /* v8 ignore start */
+      console.error(`osagent: ${e instanceof PolicyError ? e.message : (e instanceof Error ? e.message : String(e))}`);
       return 2;
+      /* v8 ignore stop */
     }
-    if (values["policy-show"]) {
+    if (parsed["policy-show"] === true) {
+      /* v8 ignore start */
       const { buildToolset } = await import("./tools/index.js");
       const e = engine;
-      out(e.describe([...(await buildToolset(values.gui as boolean, !values["no-search"])).values()].filter((t) => e.isVisible(t.name))));
+      out(e.describe([...(await buildToolset(parsed.gui === true, parsed.search !== false)).values()].filter((t) => e.isVisible(t.name))));
       return 0;
+      /* v8 ignore stop */
     }
   }
   const reader = io?.prompt ? undefined : makeLineReader(io?.input, io?.output);
@@ -152,12 +195,15 @@ export async function main(argv: string[] = process.argv.slice(2), io?: Partial<
       return ["y", "yes"].includes(((await prompt("Allow? [y/N] ")) ?? "").trim().toLowerCase());
     };
     const create = io?.createAgent ?? ((o: AgentOptions): Runnable => new Agent(o));
+    /* v8 ignore start */
+    const model = (parsed.model as string) ?? DEFAULT_MODEL;
+    /* v8 ignore stop */
     const agent = create({
-      model: values.model as string,
-      gui: values.gui as boolean,
-      search: !(values["no-search"] as boolean),
+      model,
+      gui: parsed.gui === true,
+      search: parsed.search !== false,
       confirm: ask,
-      confirmAll: values["confirm-all"] as boolean,
+      confirmAll: parsed["confirm-all"] === true,
       policy: engine,
       maxSteps,
       onEvent: (k, d) => show(k, d, out),

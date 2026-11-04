@@ -1,3 +1,4 @@
+import "zod/compile";
 /**
  * Window management through nut.js: list, active, focus, move, resize, minimize, restore, close, wait.
  *

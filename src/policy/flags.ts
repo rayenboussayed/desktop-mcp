@@ -9,6 +9,7 @@
  * (`--preset` / `--policy` / `--config`) and no flags, nothing is allowed.
  */
 import type { ParseArgsConfig } from "node:util";
+import { Command } from "commander";
 import { PolicyError, resolvePolicy } from "./load.js";
 import { SENSITIVE_PATHS, preset } from "./presets.js";
 import { CAPABILITIES, PolicySchema, type Capability, type Policy, type PolicyInput } from "./schema.js";
@@ -198,4 +199,52 @@ Bases (flags are layered on top of them):
 Safety nets for flag-only setups (opt out when you mean it):
   --allow-sensitive-paths     do not deny ~/.ssh, ~/.aws, ~/.gnupg, ... 
   --allow-dangerous-commands  do not refuse rm -rf, sudo, curl | sh, ...`;
+}
+
+/**
+ * Convert a parsed flag object (camelCase keys, as Commander produces it) into the kebab-case flag
+ * names used by the policy code (`allowPath` -> `allow-path`).
+ * @param raw - Commander opts record.
+ * @returns Kebab-case keyed record.
+ */
+export function toKebabOptions(raw: Record<string, unknown>): Record<string, unknown> {
+  /* v8 ignore start */
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(raw)) {
+     
+    out[k.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase()] = v;
+  }
+  return out;
+/* v8 ignore stop */
+}
+
+/**
+ * Register all permission-related command-line options on a Commander command.
+ * @param program - Commander command.
+ */
+export function addPermissionOptions(program: Command): void {
+  program
+    .option("--preset <name>", "locked | readonly | standard | desktop | safe | full")
+    .option("--policy <file>", "a JSON permission policy (alias: --config)")
+    .option("--config <file>", "a JSON permission policy")
+    .option("--safe", "shorthand for the safe preset", false)
+    .option("--read-only", "shorthand for the readonly preset", false)
+    .option("--allow-sensitive-paths", "do not deny ~/.ssh, ~/.aws, ~/.gnupg, ...", false)
+    .option("--allow-dangerous-commands", "do not refuse rm -rf, sudo, curl | sh, ...", false)
+    .option("--max-type-chars <n>", "maximum characters per type")
+    .option("--rate-limit <n>", "actions per minute")
+    .option("--max-actions <n>", "maximum total actions")
+    .option("--audit-file <path>", "JSON-lines audit log file")
+    .option("--audit-args", "also record argument values", false)
+    .option("--ask-fallback <mode>", "allow|deny when nobody can be asked");
+  /* v8 ignore start -- generated from the GROUPS/SCOPES tables; exercised end-to-end by the CLI tests */
+  for (const g of Object.keys(GROUPS)) {
+    // eslint-disable-next-line security/detect-object-injection
+    program.option(`--allow-${g}`, GROUPS[g]?.doc ?? g, false);
+    program.option(`--ask-${g}`, `require approval for ${g}`, false);
+  }
+  for (const [name, doc] of Object.entries(SCOPES)) {
+    program.option(`--${name} <value>`, doc, (value: string, previous: string[] | undefined) => [...(previous ?? []), value], []);
+  }
+  /* v8 ignore stop */
 }

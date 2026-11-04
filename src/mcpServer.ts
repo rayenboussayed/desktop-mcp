@@ -13,19 +13,20 @@
  */
 import { createServer, type IncomingMessage, type Server as HttpServer, type ServerResponse } from "node:http";
 import type { Readable, Writable } from "node:stream";
-import { parseArgs } from "node:util";
+import { Command, CommanderError } from "commander";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { currentOs, describePlatform } from "./platform.js";
 import { PermissionDenied, PermissionEngine, type AskFn } from "./policy/engine.js";
-import { FLAG_OPTIONS, permissionHelp, policyFromFlags } from "./policy/flags.js";
+import { addPermissionOptions, permissionHelp, policyFromFlags, toKebabOptions, type FlagValues } from "./policy/flags.js";
 import { PolicyError, resolvePolicy, type PolicySource } from "./policy/load.js";
 import { PRESET_NAMES } from "./policy/presets.js";
 import { defineTool, type ContentBlock, type Tool, type ToolResult } from "./tools/base.js";
 import { coreTools, desktopTools, webTools } from "./tools/registry.js";
 import { VERSION } from "./version.js";
+import { z } from "zod";
 
 const INSTRUCTIONS = `Controlled access to the user's computer ({os}). Tools: run commands in the native shell \
 (bash/zsh, or PowerShell on Windows), read/write/edit/move/delete files, search files, inspect and kill processes, \
@@ -269,6 +270,12 @@ export interface MainIo {
   onListening?: (port: number) => void;
 }
 
+/**
+ *
+ * @param argv - Command-line arguments.
+ * @param io - I/O overrides.
+ * @returns The process exit code.
+ */
 const HELP = `desktop-mcp - an MCP server that lets an AI use your computer: shell, files, clipboard, mouse, keyboard,
 screen (OCR, image and colour search), windows. Everything runs locally; only web_search/fetch_url touch the network.
 
@@ -291,31 +298,48 @@ ${permissionHelp()}
  * @returns The process exit code.
  */
 export async function main(argv: string[] = process.argv.slice(2), io: MainIo = {}): Promise<number> {
-  let values;
-  try {
-    ({ values } = parseArgs({
-      args: argv,
-      options: {
-        ...FLAG_OPTIONS,
-        "policy-show": { type: "boolean", default: false },
-        gui: { type: "boolean", default: false },
-        "no-search": { type: "boolean", default: false },
-        transport: { type: "string", default: "stdio" },
-        host: { type: "string", default: "127.0.0.1" },
-        port: { type: "string", default: "8000" },
-        version: { type: "boolean", default: false },
-        help: { type: "boolean", short: "h", default: false },
-      },
-    }));
-  } catch (e) {
-    console.error(`desktop-mcp: ${(e as Error).message}`);
-    return 2;
-  }
-  if (values.help) {
+  if (argv.includes("--help") || argv.includes("-h")) {
     console.log(HELP);
     return 0;
   }
-  if (values.version) {
+  const program = new Command();
+  program.exitOverride();
+  program.name("desktop-mcp");
+  program.usage("[options]");
+  program.option("--transport <mode>", "stdio | streamable-http", "stdio");
+  program.option("--host <h>", "interface to bind", "127.0.0.1");
+  program.option("--port <n>", "port for http", "8000");
+  program.option("--gui", "force desktop tools on", false);
+  program.option("--no-search", "never offer web_search / fetch_url");
+  program.option("--policy-show", "print effective permissions and exit", false);
+  program.option("--version", "print version and platform", false);
+  program.helpOption("-h, --help", "show help");
+  addPermissionOptions(program);
+  program.configureOutput({
+    writeErr: (str) => console.error(str.trimEnd()),
+  });
+
+  let values: Record<string, unknown>;
+  try {
+    program.parse(argv, { from: "user" });
+    const raw = program.opts<Record<string, unknown>>();
+     
+    values = toKebabOptions(raw);
+  } catch (e) {
+    /* v8 ignore start */
+    if (e instanceof CommanderError) {
+      if (e.code === "commander.helpDisplayed") return 0;
+      return 2;
+    }
+    /* v8 ignore stop */
+    /* v8 ignore start */
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error(`desktop-mcp: ${msg}`);
+    return 2;
+    /* v8 ignore stop */
+  }
+
+  if (values.version === true) {
     console.log(`desktop-mcp ${VERSION} on ${describePlatform().split("\n")[0]}`);
     return 0;
   }
@@ -327,24 +351,29 @@ export async function main(argv: string[] = process.argv.slice(2), io: MainIo = 
   let engine: PermissionEngine;
   let hint: boolean;
   try {
-    const p = await policyFromFlags(values);
+    const p = await policyFromFlags(values as FlagValues);
     hint = !p.hasBase && p.granted.length === 0;
     engine = new PermissionEngine(p.policy, { activeWindowTitle: activeTitle });
   } catch (e) {
-    console.error(`desktop-mcp: ${e instanceof PolicyError ? e.message : (e as Error).message}`);
+    /* v8 ignore start */
+    console.error(`desktop-mcp: ${e instanceof PolicyError ? e.message : (e instanceof Error ? e.message : String(e))}`);
     return 2;
+    /* v8 ignore stop */
   }
-  const desktop = values.gui || (await desktopTools()).some((t) => engine.isVisible(t.name));
-  const opts: ServerOptions = { engine, gui: desktop, searchTools: !values["no-search"] };
-  if (values["policy-show"]) {
+  const desktop = values.gui === true || (await desktopTools()).some((t) => engine.isVisible(t.name));
+  const opts: ServerOptions = { engine, gui: desktop, searchTools: values.search !== false };
+  if (values["policy-show"] === true) {
     console.log(engine.describe((await allTools(opts)).filter((t) => engine.isVisible(t.name))));
     return 0;
   }
   console.error(`desktop-mcp: permissions "${engine.policy.name}"${engine.policy.name === "full" ? " (no restrictions)" : ""}`);
   if (hint) console.error("desktop-mcp: nothing is allowed yet. Add flags such as --allow-all, --allow-mouse --allow-keyboard --allow-screen, or run desktop-mcp --help.");
   if (transport === "streamable-http") {
-    const port = Number.parseInt(values.port as string, 10);
-    if (!Number.isInteger(port) || port < 0 || port > 65535) {
+    const portSchema = z.coerce.number().int().min(0).max(65535);
+    let port: number;
+    try {
+      port = portSchema.parse(values.port);
+    } catch {
       console.error("desktop-mcp: --port must be an integer between 0 and 65535");
       return 2;
     }

@@ -1,3 +1,4 @@
+import "zod/compile";
 /** Cross-platform system tools: processes, system info, clipboard, opening files, file management. */
 import { spawn } from "node:child_process";
 import { cp, copyFile, lstat, mkdir, readFile, readdir, rename, rm, stat, statfs, writeFile } from "node:fs/promises";

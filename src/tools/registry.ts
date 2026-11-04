@@ -1,3 +1,4 @@
+import "zod/compile";
 import { z } from "zod";
 import { defineTool, type Tool } from "./base.js";
 import { clipboardClearTool, clipboardCopyTool, clipboardPasteTool } from "./clipboard.js";

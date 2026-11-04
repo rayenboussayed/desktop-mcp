@@ -1,3 +1,4 @@
+import "zod/compile";
 /**
  * One private Xvfb (with a window manager) for the whole test run, started BEFORE any worker exists.
  *

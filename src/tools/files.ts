@@ -1,3 +1,4 @@
+import "zod/compile";
 import { constants as fsConstants, mkdir, open, readdir, stat, writeFile as fsWriteFile } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";

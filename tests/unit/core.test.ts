@@ -1,3 +1,4 @@
+import "zod/compile";
 import { chmodSync, mkdirSync, symlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
